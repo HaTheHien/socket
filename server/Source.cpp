@@ -153,7 +153,7 @@ int __cdecl main(void)
 			}
 		}
 		if (_kbhit()) // sever exit
-		{
+		{  
 			char ch = _getch();
 			if (ch == 27) // ESC
 			{
@@ -174,6 +174,11 @@ int __cdecl main(void)
 
 void handle_connection(int*&p) // lam viec sau khi ket noi
 {
+	/*char buf[4096];
+	int byteReceive = recv(*p, buf, 4096, 0);
+	string b = buf;
+	cout << b << endl;
+	cout << byteReceive << endl;*/
 	int clientSocket = *p;
 	char buf[4096];
 	bool Login = false;
@@ -184,6 +189,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		ZeroMemory(buf, 4096);
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
 		cout << buf << endl;
+		break;
 		if (byteReceive > 0)
 		{
 			string b = buf;
@@ -323,6 +329,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				// con lai
 				if (flag == true)
 				{
+					
 					fs::space_info spaceInfo = fs::space(fs::current_path());
 					if (spaceInfo.free < Value(size))
 					{
