@@ -1,0 +1,48 @@
+- Login protocol:
+User send request: <4 byte: size of package> <4byte: LOGIN> <Username> <space> <Password>
+Server check:
+IF wrong info:
+	Server anwser: <4 byte: Size of package> <4 byte: NOT_OK> <Message>
+IF approve:
+	Server anwser: <4 byte: Size> <4 byte: OK> <Version>
+	IF Client's Version == Version:
+		Client send: <4 byte: Size> <UP_TO_DATA>
+	ELSE:
+		Client send: <4byte: Size> <OUT_OF_DATE>
+		Server anwser: <4 byte: Size> <JSON> <4 byte: Size of Json> <Version/Name>
+		Client answer: <4 byte: Size> <READY>
+		Server start to send Json file which contains file system infomation.
+
+- Refresh protocon:
++ Client send: <4 byte: Size> <4 byte: REFRESH>
+Server anwser: <4 byte: Size> <4 byte: OK> <Version> ... like above.
+
++ Server send: <4 byte: Size> <4 byte: REFRESH> <4 byte: Size of Json> <Version/Name>
+Client anwser: <4 byte: Size> <4 byte: READY> ... like above.
+
+- Upload protocol:
+User sent request: UPLOAD <number of byte> <file name>
+Server send back OK. Client start to upload.
+
+IF duplicate:
+	server ask to over-write: DUPPLICATE
+Client anwser: 
+	IF YES:
+		Server send back OK. Client start to upload.
+	IF NO:
+		Server send back ABORT.
+
+	ELSE:
+		Server send back OK. Client start to upload.
+
+IF size > 200MB:
+	Server send back OVERSIZE and abort operation.
+
+IF size > server's available:
+	Server send back OUT_OF_SPACE.
+
+File may splits into packages (4096 byte each)
+Server send back ACK if it received one.
+
+After receiving last package, server send back UPLOAD_DONE.
+
