@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/LoginView">
+        <file>origami</file>
+    </qresource>
+</RCC>
