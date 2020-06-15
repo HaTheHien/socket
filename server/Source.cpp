@@ -17,6 +17,7 @@
 #include <conio.h>
 #include <algorithm>
 #include <filesystem>
+#include <mutex>
 #include "Header.h"
 using namespace std;
 namespace fs = std::experimental::filesystem;
@@ -27,11 +28,24 @@ namespace fs = std::experimental::filesystem;
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "11111"
-
+char buf[4096];
 vector<thread*> a;
 vector<int*> client;
+mutex block;
+string IntToString4(int kt)
+{
+	string t = to_string(kt);
+	int n = t.size();
+	for (int i = 0; i < n; i++)
+	{
+		t = " " + t;
+	}
+	return t;
+}
 
 void handle_connection(int*&p);
+void DownLoad(int clientSocket,string path);
+void Upload(int clientSocket, string path);
 int addClient(vector<int*>&client,int clientSocket)
 {
 	for (int i = 0; i < client.size(); i++)
@@ -129,27 +143,29 @@ int __cdecl main(void)
 		ClientSocket = accept(ListenSocket,NULL,NULL);
 		if (ClientSocket != SOCKET_ERROR)
 		{
-			int i = addClient(client, ClientSocket);
+			int j = addClient(client, ClientSocket);
 			cout << "client conect" << endl;
 			for (int i = 0; i < a.size(); i++)
 			{
 				if (a[i] == NULL)
 				{
-					a[i] = new thread(handle_connection, ref(client[i]));
+					a[i] = new thread(handle_connection, ref(client[j]));
+					check = true;
 					break;
 				}
 				if (a[i] != NULL && a[i]->joinable())
 				{
+					check = true;
 					a[i]->join();
 					delete a[i];
-					a[i] = new thread(handle_connection, ref(client[i]));
+					a[i] = new thread(handle_connection, ref(client[j]));
 					break;
 				}
 			}
 			if (check == false)
 			{
 				a.push_back(NULL);
-				a[a.size() - 1] = new thread(handle_connection, ref(client[i]));
+				a[a.size() - 1] = new thread(handle_connection, ref(client[j]));
 			}
 		}
 		if (_kbhit()) // sever exit
@@ -161,7 +177,7 @@ int __cdecl main(void)
 				{
 					if (client[i])
 					{
-						send(*client[i], (string(ECHO) + " " + "sever is offline!").c_str(), 23, 0);
+						send(*client[i], ("0025" + string(ECHO) + "sever is offline!").c_str(), 26, 0);
 						closesocket(*client[i]);
 					}
 				}
@@ -180,25 +196,30 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	cout << b << endl;
 	cout << byteReceive << endl;*/
 	int clientSocket = *p;
-	char buf[4096];
 	bool Login = false;
 	string username;
+	//test
+	block.lock();
+	int byteReceive = recv(clientSocket, buf, 4096, 0);
+	cout << buf << endl;
+	delete p;
+	p = NULL;
+	block.unlock();
+	return;
 	// login
 	while (true)
 	{
-		ZeroMemory(buf, 4096);
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
-		cout << buf << endl;
-		break;
 		if (byteReceive > 0)
 		{
 			string b = buf;
-			string cat = b.substr(0, 4);
+			string sizebuf = b.substr(0, 4);
+			string cat = b.substr(4, 4);
 			if (cat == LOGIN)
 			{
-				int i = b.find(" ", 5);
-				username = b.substr(5, i - 5);
-				string password = b.substr(i + 1, byteReceive - i);
+				int i = b.find(" ", 8);
+				username = b.substr(8, i - 8);
+				string password = b.substr(i + 1, atoi(sizebuf.c_str()) - i);
 				ifstream fin("Login.txt");
 				if (!fin.is_open())
 					send(clientSocket, NOTOK, 5, 0);
@@ -212,7 +233,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 							getline(fin, a);
 							if (a == password)
 							{
-								send(clientSocket, OK, 3, 0);
+								send(clientSocket, OK, 3, 0); // them cai JSON
 								Login = true;
 								break;
 							}
@@ -237,7 +258,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					fout << " ";
 					fout << password << endl;
 					fout.close();
-					send(clientSocket, OK , 3, 0);
+					send(clientSocket, OK , 3, 0);// them user name moi tao vao json va gui json
 				}
 				else
 				{
@@ -259,7 +280,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					fout << password << endl;
 					fout.close();
 					fin.close();
-					send(clientSocket, OK, 3, 0);
+					send(clientSocket, OK, 3, 0);// them user name moi tao vao json va gui json
 					break;
 				}
 			}
@@ -275,79 +296,97 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		{
 			if (client[i])
 			{
-				send(*client[i], (string(ECHO) + " " + username + " login").c_str(), username.size() + 12, 0);
+				int kt = 4 + username.size() + 6 + 4;
+				string t = IntToString4(kt);
+				send(*client[i], (t + string(ECHO) + username + " login").c_str(), username.size() + 15, 0);
 			}
 		}
 	}
 	//upload download
 	while (Login == true)
 	{
-		ZeroMemory(buf, 4096);
+		block.lock();
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
 		if (byteReceive > 0)
 		{
 			string b = buf;
-			string cat = b.substr(0, 4);
+			string sizebuf = b.substr(0, 4);
+			string cat = b.substr(4, 4);
 			if (cat == UPLOAD)
 			{
 				int i;
 				bool flag = false;
-				i = b.find(" ", 5);
-				string size = b.substr(5, i - 5);
-				b = b.substr(i + 1, byteReceive - i);
+				i = b.find(" ", 8);
+				string size = b.substr(8, i - 8); // kich thuoc file
+				b = b.substr(i + 1, atoi(sizebuf.c_str()) - i); // ten file
 				string path = username + '\\' + b;
-
+				block.unlock();
 				// xu ly duplicate
 				ifstream fin(path);
 				if (fin.is_open())
 				{
 					fin.close();
-					send(clientSocket, DUPLICATE, 5, 0);
+					send(clientSocket,("0008" + string(DUPLICATE)).c_str(), 9, 0);
+					block.lock();
 					while (true)
 					{
-						ZeroMemory(buf, 4096);
 						byteReceive = recv(clientSocket, buf, 4096, 0);
-						b = buf;
-						if (b == YES)
+						if (byteReceive > 0)
 						{
-							flag = true;
-							break;
-						}
-						else if (b == NO)
-						{
-							send(clientSocket, ABORT, 5, 0);
-							break;
-						}
-						else
-						{
-							send(clientSocket, ERR, 5, 0);
+							b = buf;
+							b = b.substr(4, 4);
+							if (b == YES)
+							{
+								flag = true;
+								break;
+							}
+							else if (b == NO)
+							{
+								send(clientSocket, ("0008" + string(ABORT)).c_str(), 9, 0);
+								break;
+							}
+							else
+							{
+								send(clientSocket, ("0008" + string(ERR)).c_str(), 9, 0);
+								break;
+							}
 						}
 					}
+					block.unlock();
 				}
 				else
 					flag = true;
 				// con lai
 				if (flag == true)
 				{
-					
-					fs::space_info spaceInfo = fs::space(fs::current_path());
-					if (spaceInfo.free < Value(size))
+					unsigned long int SIZE = Value(size);
+					/*fs::space_info spaceInfo = fs::space(fs::current_path());
+					if (spaceInfo.free < SIZE)
 					{
-						send(clientSocket, OUT_OF_SPACE, 5, 0);
+						send(clientSocket,("0009" + string(OUT_OF_SPACE)).c_str(), 10, 0);
 						continue;
+					}*/
+					if (SIZE > MAX_SIZE_FILE)
+					{
+						//send(clientSocket,(""))
 					}
+					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
 					// ham trao doi du lieu
+					Upload(clientSocket,path);
 				}
 			}
 			if (cat == DOWNLOAD)
 			{
-
+				string path = b.substr(8, atoi(sizebuf.c_str()) - 8); // kich thuoc file
+				DownLoad(clientSocket, path);
 			}
 			if (cat == EXIT)
 			{
 				break;
 			}
 		}
+		if (byteReceive <= 0)
+			block.unlock();
 	}
 	delete p;
 	p = NULL;
@@ -355,8 +394,22 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	{
 		if (client[i])
 		{
-			send(*client[i], (string(ECHO) + " " + username + " logout").c_str(), username.size() + 12, 0);
+			int kt = 4 + 4 + username.size() + 7;
+			string t = IntToString4(kt);
+			send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
 		}
 	}
 	closesocket(clientSocket); // khi khong ket noi nua thi tat
+}
+
+void Upload(int clientSocket, string path) 
+{
+	block.lock();
+	block.unlock();
+}
+
+void DownLoad(int clientSocket,string path)
+{
+	block.lock();
+	block.unlock();
 }

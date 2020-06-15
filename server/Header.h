@@ -3,8 +3,9 @@
 #define RES "2345"
 #define EXIT "0000"
 #define DEFAULT_PORT "11111"
-#define UPLOAD "1111" 
-#define DOWNLOAD "2222"
+#define MAX_SIZE_FILE 209715200 // 200MB
+#define UPLOAD "1111"  // tham so la kich thuoc, ten file
+#define DOWNLOAD "2222" // tham so la duong dan file
 #define ABORT "3456"
 #define NOTOK "3333"
 #define OK "4444"
@@ -13,8 +14,9 @@
 #define YES "7777"
 #define NO "8888"
 #define ERR "9999"
-#define ECHO "@out"
-#define ACK ""
+#define ECHO "@out" // tham so la chuoi can in ra
+#define ACK "    "
+#define UPLOAD_DONE "UPLD"
 
 //4 Byte: kich thuoc
 //4 Byte: Defined code 
