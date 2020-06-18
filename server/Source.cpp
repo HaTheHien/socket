@@ -28,10 +28,15 @@ namespace fs = std::experimental::filesystem;
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "11111"
-char buf[4096];
+
 vector<thread*> a;
 vector<int*> client;
+
+char buf[4096];
 mutex block;
+char buf2[4096];
+mutex blockUpload;
+
 string IntToString4(int kt)
 {
 	string t = to_string(kt);
@@ -45,7 +50,7 @@ string IntToString4(int kt)
 
 void handle_connection(int*&p);
 void DownLoad(int clientSocket,string path);
-void Upload(int clientSocket, string path);
+bool Upload(int clientSocket, string path,long int size);
 int addClient(vector<int*>&client,int clientSocket)
 {
 	for (int i = 0; i < client.size(); i++)
@@ -190,22 +195,17 @@ int __cdecl main(void)
 
 void handle_connection(int*&p) // lam viec sau khi ket noi
 {
-	/*char buf[4096];
-	int byteReceive = recv(*p, buf, 4096, 0);
-	string b = buf;
-	cout << b << endl;
-	cout << byteReceive << endl;*/
 	int clientSocket = *p;
 	bool Login = false;
 	string username;
 	//test
-	block.lock();
+	/*block.lock();
 	int byteReceive = recv(clientSocket, buf, 4096, 0);
 	cout << buf << endl;
 	delete p;
 	p = NULL;
 	block.unlock();
-	return;
+	return;*/
 	// login
 	while (true)
 	{
@@ -289,6 +289,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		}
 	}
 	//Tao thu muc cho user
+	int kt = 4 + 4 + username.size() + 7;
+	string t = IntToString4(kt);
 	if (Login == true)
 	{
 		_mkdir(username.c_str());
@@ -296,8 +298,6 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		{
 			if (client[i])
 			{
-				int kt = 4 + username.size() + 6 + 4;
-				string t = IntToString4(kt);
 				send(*client[i], (t + string(ECHO) + username + " login").c_str(), username.size() + 15, 0);
 			}
 		}
@@ -372,12 +372,23 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					}
 					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
 					// ham trao doi du lieu
-					Upload(clientSocket,path);
+					if (Upload(clientSocket, path, SIZE))
+					{
+						for (int i = 0; i < client.size(); i++)
+						{
+							if (client[i])
+							{
+								send(*client[i], (t + string(ECHO) + username + " upload success").c_str(), username.size() + 24, 0);
+							}
+						}
+					}
+					else
+						break;
 				}
 			}
 			if (cat == DOWNLOAD)
 			{
-				string path = b.substr(8, atoi(sizebuf.c_str()) - 8); // kich thuoc file
+				string path = b.substr(8, atoi(sizebuf.c_str()) - 8);
 				DownLoad(clientSocket, path);
 			}
 			if (cat == EXIT)
@@ -390,26 +401,82 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	}
 	delete p;
 	p = NULL;
+
 	for (int i = 0; i < client.size(); i++)
 	{
 		if (client[i])
 		{
-			int kt = 4 + 4 + username.size() + 7;
-			string t = IntToString4(kt);
 			send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
 		}
 	}
 	closesocket(clientSocket); // khi khong ket noi nua thi tat
 }
 
-void Upload(int clientSocket, string path) 
+bool Upload(int clientSocket, string path, long int size) 
 {
-	block.lock();
-	block.unlock();
+	ofstream fout(path);
+	blockUpload.lock();
+	while (true)
+	{
+		int byteReceive = recv(clientSocket, buf2, 4096, 0);
+		if (byteReceive == 0) // mat ket noi client
+		{
+			blockUpload.unlock();
+			return false;
+		}
+		if (byteReceive > 0)
+		{
+			if (size > 4096)
+			{
+				fout.write(buf2, 4096);
+				send(clientSocket, ("0008" + string(ACK)).c_str(), 9, 0);
+				size -= 4096;
+			}
+			else
+			{
+				fout.write(buf2, size);
+				send(clientSocket, ("0008" + string(UPLOAD_DONE)).c_str(), 9, 0);
+				blockUpload.unlock();
+				return true;
+			}
+		}
+	}
 }
 
 void DownLoad(int clientSocket,string path)
 {
-	block.lock();
-	block.unlock();
+	ifstream fin(path);
+	while (true)
+	{
+		block.lock();
+		fin.read(buf, 4096);
+		send(clientSocket, buf, 4097, 0);
+		block.unlock();
+		do
+		{
+			block.lock();
+			int byteReceive = recv(clientSocket, buf, 4096, 0);
+			if (byteReceive == 0) // mat ket noi voi client
+			{
+				block.unlock();
+				return;
+			}
+			if (byteReceive > 0)
+			{
+				string b = buf;
+				b = b.substr(4, 4);
+				if (b == string(ACK))
+				{
+					block.unlock();
+					break;
+				}
+				if (b == string(DOWNLOAD_DONE))
+				{
+					block.unlock();
+					return;
+				}
+			}
+			block.unlock();
+		} while (true);
+	}
 }

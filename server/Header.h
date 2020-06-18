@@ -17,6 +17,7 @@
 #define ECHO "@out" // tham so la chuoi can in ra
 #define ACK "    "
 #define UPLOAD_DONE "UPLD"
+#define DOWNLOAD_DONE "DOLD"
 
 //4 Byte: kich thuoc
 //4 Byte: Defined code 
