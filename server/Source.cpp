@@ -323,6 +323,11 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		bool check = false;
 		block.lock();
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
+		if (byteReceive == 0)
+		{
+			block.unlock();
+			break;
+		}
 		if (byteReceive > 0)
 		{
 			string b = buf;
@@ -408,9 +413,33 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			if (cat == DOWNLOAD)
 			{
 				check = true;
+				block.unlock();
 				string path = b.substr(8, atoi(sizebuf.c_str()) - 8);
-				if (DownLoad(clientSocket, path))
-					cout << username << " download file:" << path << endl;
+				send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
+				while (true)
+				{
+					block.lock();
+					byteReceive = recv(clientSocket, buf, 4096, 0);
+					if (byteReceive == 0)
+					{
+						cat = EXIT;
+						block.unlock();
+						break;
+					}
+					if (byteReceive > 0)
+					{
+						b = buf;
+						string c = b.substr(4, 4);
+						block.unlock();
+						if (c == READY)
+						{
+							if (DownLoad(clientSocket, path))
+								cout << username << " download file:" << path << endl;
+						}
+					}
+					else
+						block.unlock();
+				}
 			}
 			if (cat == EXIT)
 			{
@@ -449,13 +478,13 @@ bool Upload(int clientSocket, string path, long int size)
 		{
 			if (size > 4096)
 			{
-				fout.write(buf2, 4096);
+				fout.write(buf2 + 8, 4092);
 				send(clientSocket, ("0008" + string(ACK)).c_str(), 9, 0);
 				size -= 4096;
 			}
 			else
 			{
-				fout.write(buf2, size);
+				fout.write(buf2 + 8, size);
 				send(clientSocket, ("0008" + string(UPLOAD_DONE)).c_str(), 9, 0);
 				blockUpload.unlock();
 				return true;
@@ -467,13 +496,31 @@ bool Upload(int clientSocket, string path, long int size)
 bool DownLoad(int clientSocket,string path)
 {
 	ifstream fin(path);
+	if (!fin.is_open())
+	{
+		send(clientSocket, ("0019" + string(NOTOK) + "can't open file").c_str(), 20, 0);
+	}
+	long int size;
+	fin.seekg(0, ios::end);
+	size = fin.tellg();
+	fin.seekg(0, ios::beg);
 	while (true)
 	{
 		block.lock();
-		fin.read(buf, 4096);
-		send(clientSocket, buf, 4097, 0);
+		if (size > 4092)
+		{
+			size -= 4092;
+			fin.read(buf, 4092);
+			send(clientSocket, ("4096" + string(FILE) + buf).c_str(), 4097, 0);
+		}
+		else
+		{
+			fin.read(buf, size);
+			int t2 = size + 8;
+			send(clientSocket, (IntToString4(t2) + string(END_OF_FILE) + buf).c_str(), 4097, 0);
+		}
 		block.unlock();
-		do
+		while (true)
 		{
 			block.lock();
 			int byteReceive = recv(clientSocket, buf, 4096, 0);
@@ -498,7 +545,7 @@ bool DownLoad(int clientSocket,string path)
 				}
 			}
 			block.unlock();
-		} while (true);
+		};
 	}
 	return false;
 }

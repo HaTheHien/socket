@@ -20,6 +20,7 @@
 #define FILE "fIL_"
 #define UPLOAD_DONE "UPLD"
 #define DOWNLOAD_DONE "DOLD"
+#define END_OF_FILE "E_OF"
 
 //4 Byte: kich thuoc
 //4 Byte: Defined code 
