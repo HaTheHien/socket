@@ -47,9 +47,9 @@ string IntToString4(int kt)
 	}
 	return t;
 }
-
+void serverExit();
 void handle_connection(int*&p);
-void DownLoad(int clientSocket,string path);
+bool DownLoad(int clientSocket,string path);
 bool Upload(int clientSocket, string path,long int size);
 int addClient(vector<int*>&client,int clientSocket)
 {
@@ -138,7 +138,7 @@ int __cdecl main(void)
 		WSACleanup();
 		return 1;
 	}
-	
+	thread EX(serverExit);
 	cout << "Enter button ESC in keyboard to exit" << endl;
 	// Accept a client socket
 	while (true)
@@ -152,12 +152,6 @@ int __cdecl main(void)
 			cout << "client conect" << endl;
 			for (int i = 0; i < a.size(); i++)
 			{
-				if (a[i] == NULL)
-				{
-					a[i] = new thread(handle_connection, ref(client[j]));
-					check = true;
-					break;
-				}
 				if (a[i] != NULL && a[i]->joinable())
 				{
 					check = true;
@@ -173,8 +167,15 @@ int __cdecl main(void)
 				a[a.size() - 1] = new thread(handle_connection, ref(client[j]));
 			}
 		}
+	}
+}
+
+void serverExit()
+{
+	while (true)
+	{
 		if (_kbhit()) // sever exit
-		{  
+		{
 			char ch = _getch();
 			if (ch == 27) // ESC
 			{
@@ -186,7 +187,6 @@ int __cdecl main(void)
 						closesocket(*client[i]);
 					}
 				}
-				closesocket(ListenSocket);
 				exit(0);
 			}
 		}
@@ -209,7 +209,14 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	// login
 	while (true)
 	{
+		bool check = false;
+		block.lock();
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
+		if (byteReceive == 0)
+		{
+			block.unlock();
+			return;
+		}
 		if (byteReceive > 0)
 		{
 			string b = buf;
@@ -217,12 +224,14 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			string cat = b.substr(4, 4);
 			if (cat == LOGIN)
 			{
+				check = true;
 				int i = b.find(" ", 8);
 				username = b.substr(8, i - 8);
 				string password = b.substr(i + 1, atoi(sizebuf.c_str()) - i);
+				block.unlock();
 				ifstream fin("Login.txt");
 				if (!fin.is_open())
-					send(clientSocket, NOTOK, 5, 0);
+					send(clientSocket, ("0008" + string(NOTOK)).c_str(), 9, 0);
 				else
 				{
 					string a;
@@ -233,7 +242,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 							getline(fin, a);
 							if (a == password)
 							{
-								send(clientSocket, OK, 3, 0); // them cai JSON
+								send(clientSocket, ("0012" + string(OK) + "JSON").c_str(), 13, 0);// gui json
+								//send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0); // gui JSON
 								Login = true;
 								break;
 							}
@@ -242,14 +252,16 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					if (Login == true)
 						break;
 					else
-						send(clientSocket, NOTOK, 7, 0);
+						send(clientSocket, NOTOK, 5, 0);
 				}
 			}
 			if (cat == RES)
 			{
+				check = true;
 				int i = b.find(" ", 5);
 				string username = b.substr(5, i - 5);
 				string password = b.substr(i + 1, byteReceive - i);
+				block.unlock();
 				ifstream fin("Login.txt");
 				if (!fin.is_open())
 				{
@@ -258,7 +270,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					fout << " ";
 					fout << password << endl;
 					fout.close();
-					send(clientSocket, OK , 3, 0);// them user name moi tao vao json va gui json
+					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
+					continue;
 				}
 				else
 				{
@@ -269,7 +282,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 						a = a.substr(0, i);
 						if (a == username)
 						{
-							send(clientSocket, NOTOK, 7, 0);
+							send(clientSocket, ("0008" + string(NOTOK)).c_str(), 9, 0);
 							continue;
 						}
 					}
@@ -280,10 +293,12 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					fout << password << endl;
 					fout.close();
 					fin.close();
-					send(clientSocket, OK, 3, 0);// them user name moi tao vao json va gui json
-					break;
+					send(clientSocket, OK, 3, 0);
+					continue;
 				}
 			}
+			if (check == false)
+				block.unlock();
 			if (cat == EXIT)
 				break;
 		}
@@ -305,6 +320,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	//upload download
 	while (Login == true)
 	{
+		bool check = false;
 		block.lock();
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
 		if (byteReceive > 0)
@@ -314,12 +330,13 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			string cat = b.substr(4, 4);
 			if (cat == UPLOAD)
 			{
+				check = true;
 				int i;
 				bool flag = false;
 				i = b.find(" ", 8);
 				string size = b.substr(8, i - 8); // kich thuoc file
 				b = b.substr(i + 1, atoi(sizebuf.c_str()) - i); // ten file
-				string path = username + '\\' + b;
+				string path = b;
 				block.unlock();
 				// xu ly duplicate
 				ifstream fin(path);
@@ -369,6 +386,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					if (SIZE > MAX_SIZE_FILE)
 					{
 						//send(clientSocket,(""))
+						continue;
 					}
 					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
 					// ham trao doi du lieu
@@ -381,6 +399,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 								send(*client[i], (t + string(ECHO) + username + " upload success").c_str(), username.size() + 24, 0);
 							}
 						}
+						cout << username << " upload file:" << path << endl;
 					}
 					else
 						break;
@@ -388,15 +407,17 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			}
 			if (cat == DOWNLOAD)
 			{
+				check = true;
 				string path = b.substr(8, atoi(sizebuf.c_str()) - 8);
-				DownLoad(clientSocket, path);
+				if (DownLoad(clientSocket, path))
+					cout << username << " download file:" << path << endl;
 			}
 			if (cat == EXIT)
 			{
 				break;
 			}
 		}
-		if (byteReceive <= 0)
+		if (check == false)
 			block.unlock();
 	}
 	delete p;
@@ -443,7 +464,7 @@ bool Upload(int clientSocket, string path, long int size)
 	}
 }
 
-void DownLoad(int clientSocket,string path)
+bool DownLoad(int clientSocket,string path)
 {
 	ifstream fin(path);
 	while (true)
@@ -459,7 +480,7 @@ void DownLoad(int clientSocket,string path)
 			if (byteReceive == 0) // mat ket noi voi client
 			{
 				block.unlock();
-				return;
+				return false;
 			}
 			if (byteReceive > 0)
 			{
@@ -473,10 +494,11 @@ void DownLoad(int clientSocket,string path)
 				if (b == string(DOWNLOAD_DONE))
 				{
 					block.unlock();
-					return;
+					return true;
 				}
 			}
 			block.unlock();
 		} while (true);
 	}
+	return false;
 }

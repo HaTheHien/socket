@@ -9,6 +9,7 @@
 #define ABORT "3456"
 #define NOTOK "3333"
 #define OK "4444"
+#define READY "5656"
 #define OUT_OF_SPACE "5555"
 #define DUPLICATE "6666"
 #define YES "7777"
@@ -16,6 +17,7 @@
 #define ERR "9999"
 #define ECHO "@out" // tham so la chuoi can in ra
 #define ACK "    "
+#define FILE "fIL_"
 #define UPLOAD_DONE "UPLD"
 #define DOWNLOAD_DONE "DOLD"
 
