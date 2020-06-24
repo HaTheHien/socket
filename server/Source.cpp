@@ -552,7 +552,7 @@ bool DownLoad(int clientSocket,string path)
 		{
 			size -= 4092;
 			fin.read(buf, 4092);
-			send(clientSocket, ("4096" + string(FILE) + buf).c_str(), 4097, 0);
+			send(clientSocket, ("4096" + string(FILE_) + buf).c_str(), 4097, 0);
 		}
 		else
 		{
@@ -611,7 +611,7 @@ bool DownloadJSON(int clientSocket)
 		{
 			fin.read(buf, 4092);
 			size -= 4092;
-			send(clientSocket, ("4096" + string(FILE) + buf).c_str(), 4097, 0);
+			send(clientSocket, ("4096" + string(FILE_) + buf).c_str(), 4097, 0);
 		}
 		else
 		{

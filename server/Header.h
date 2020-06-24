@@ -17,7 +17,7 @@
 #define ERR "9999"
 #define ECHO "@out" // tham so la chuoi can in ra
 #define ACK "    "
-#define FILE "fIL_"
+#define FILE_ "fIL_"
 #define UPLOAD_DONE "UPLD"
 #define DOWNLOAD_DONE "DOLD"
 #define END_OF_FILE "E_OF"

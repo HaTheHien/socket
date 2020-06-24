@@ -1,19 +1,35 @@
 #include "File_Management.h"
 
-#define TEST // block this line to run .-.
-#ifdef TEST
-int main() {
-	json j;
-	j["list"]["a"] = 1;
-	j["list"]["b"] = 2;
-	j["list"]["c"] = 3;
-	cout << j.dump(4);
-	for (json::iterator it = j["list"].begin(); it != j["list"].end(); ++it) {
-		std::cout << it.key() << '\n';
-	}
-	return 0;
+string _version() {
+
+	time_t rawtime;
+	struct tm timeinfo;
+
+	time(&rawtime);
+	localtime_s(&timeinfo, &rawtime);
+	string iResult =
+		to_string(timeinfo.tm_year) + "-" +
+		to_string(timeinfo.tm_yday) + "-" +
+		to_string(timeinfo.tm_hour) + "-" +
+		to_string(timeinfo.tm_min) + "-" +
+		to_string(timeinfo.tm_sec);
+	return iResult;
 }
-#endif // TEST
+
+#define TEST // block this line to run .-.
+//#ifdef TEST
+//int main() {
+//	json j;
+//	j["list"]["a"] = 1;
+//	j["list"]["b"] = 2;
+//	j["list"]["c"] = 3;
+//	cout << j.dump(4);
+//	for (json::iterator it = j["list"].begin(); it != j["list"].end(); ++it) {
+//		std::cout << it.key() << '\n';
+//	}
+//	return 0;
+//}
+//#endif // TEST
 
 Container::Container()
 {
