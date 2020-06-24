@@ -29,7 +29,4 @@
 # Executables
 *.out
 *.app
-
-Debug
-#Release
 .vs
