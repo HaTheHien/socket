@@ -279,7 +279,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					if (Login == true)
 						break;
 					else
-						send(clientSocket,("0008" +  string(NOTOK) + "login fail").c_str(), 19, 0);
+						send(clientSocket,("0018" +  string(NOTOK) + "login fail").c_str(), 19, 0);
 				}
 			}
 			if (cat == READY)
@@ -319,7 +319,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 						a = a.substr(0, i);
 						if (a == username)
 						{
-							send(clientSocket, ("0008" + string(NOTOK) + "u").c_str(), 9, 0);
+							send(clientSocket, ("0028" + string(NOTOK) + "username is already").c_str(), 28, 0);
 							continue;
 						}
 					}
@@ -591,7 +591,8 @@ bool DownLoad(int clientSocket,string path)
 					return true;
 				}
 			}
-			block.unlock();
+			else
+				block.unlock();
 		};
 	}
 	return false;
@@ -634,6 +635,7 @@ bool DownloadJSON(int clientSocket)
 			if (byteReceive == 0) // mat ket noi voi client
 			{
 				block.unlock();
+				blockJSON.unlock();
 				return false;
 			}
 			if (byteReceive > 0)
@@ -648,6 +650,7 @@ bool DownloadJSON(int clientSocket)
 				if (b == string(DOWNLOAD_DONE))
 				{
 					block.unlock();
+					blockJSON.unlock();
 					return true;
 				}
 			}
