@@ -4,12 +4,12 @@
 #ifdef TEST
 int main() {
 	json j;
-	j["list"] = {};
-	vector<string> v;
-	v.push_back("a");
-	j["list"] = v;
-	for (int i = 0; i < j["list"].size(); i++) {
-		cout << j["list"][i].get<string>();
+	j["list"]["a"] = 1;
+	j["list"]["b"] = 2;
+	j["list"]["c"] = 3;
+	cout << j.dump(4);
+	for (json::iterator it = j["list"].begin(); it != j["list"].end(); ++it) {
+		std::cout << it.key() << '\n';
 	}
 	return 0;
 }
@@ -47,7 +47,7 @@ void Container::share(vector<string> list, int mode)
 void Container::save()
 {
 	ofstream fout(PACKG);
-	fout << file;
+	fout <<std::setw(4) << file;
 	fout.close();
 }
 
@@ -91,6 +91,9 @@ string Container::get(string name, string username)
 		if (file["documents"][name]["owner"] == username) {
 			return file["documents"][name]["link"].get<string>();
 		}
+		else if (!file["documents"][name]["list"].size()) {
+			return file["documents"][name]["link"].get<string>();
+		}
 		else {
 			for (int i = 0; i < file["documents"][name]["list"].size(); i++) {
 				if (file["documents"][name]["list"][i].get<string>() == username) {
@@ -103,12 +106,21 @@ string Container::get(string name, string username)
 	return string();
 }
 
-int Container::size(string name)
+uint8_t Container::size(string name)
 {
 	if (file["documents"].contains(name)) {
-		return file["document"][name]["size"].get<int>();
+		return file["document"][name]["size"].get<uint8_t>();
 	}
 	return 0;
+}
+
+vector<string> Container::listDocument()
+{
+	vector<string> list;
+	for (json::iterator it = file["documents"].begin(); it != file["documents"].end(); ++it) {
+		list.push_back(it.key());
+	}
+	return list;
 }
 
 void Container::update()

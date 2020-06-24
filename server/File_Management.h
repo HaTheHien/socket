@@ -2,6 +2,7 @@
 #include <time.h>
 #include <string>
 #include <fstream>
+#include <iomanip>
 #include "json.hpp"
 #include "windows.h"
 #define PACKG	"file.json"
@@ -40,4 +41,5 @@ public:
 	bool deleteDocument(string name, string username);
 	string get(string name, string username);
 	uint8_t size(string name);
+	vector<string> listDocument();
 };
