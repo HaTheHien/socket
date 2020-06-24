@@ -12,7 +12,6 @@
 #include <thread>
 #include <fstream>
 #include <string>
-#include <direct.h>
 #include <Windows.h>
 #include <conio.h>
 #include <algorithm>
@@ -246,8 +245,6 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 							getline(fin, a);
 							if (a == password)
 							{
-								int t = 8 + Mjson.version().size();
-								send(clientSocket, (IntToString4(t) + string(OK) + Mjson.version()).c_str(), 9 + Mjson.version().size(), 0);
 								bool flag = false;
 								for (int j = 0; j < use.size(); j++)
 								{
@@ -258,8 +255,13 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 									}
 								}
 								if (flag == true)
+								{
+									send(clientSocket, ("0029" + string(NOTOK) + "already login account").c_str(), 30, 0);
 									break;
+								}
 								Login = true;
+								int t = 8 + Mjson.version().size();
+								send(clientSocket, (IntToString4(t) + string(OK) + Mjson.version()).c_str(), 9 + Mjson.version().size(), 0);
 								for(int j=0;j<use.size();j++)
 								{
 									if (*use[j] == "")
@@ -284,6 +286,10 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			{
 				block.unlock();
 				DownloadJSON(clientSocket);
+				break;
+			}
+			if (cat == UP_TO_DATE)
+			{
 				break;
 			}
 			if (cat == RES)
@@ -341,7 +347,6 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	string t = IntToString4(kt);
 	if (Login == true)
 	{
-		_mkdir(username.c_str());
 		for (int i = 0; i < client.size(); i++)
 		{
 			if (client[i])
@@ -349,6 +354,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				send(*client[i], (t + string(ECHO) + username + " login").c_str(), username.size() + 15, 0);
 			}
 		}
+		cout << username << " login" << endl;
 	}
 	//upload download
 	while (Login == true)
@@ -380,7 +386,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				if (fin.is_open() && Mjson.get(path, username) != "")
 				{
 					fin.close();
-					send(clientSocket,("0008" + string(DUPLICATE)).c_str(), 9, 0);
+					send(clientSocket,("0008" + string(DUPLICATE_)).c_str(), 9, 0);
 					block.lock();
 					while (true)
 					{
@@ -436,9 +442,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 						{
 							if (client[i])
 							{
-								//send(*client[i], (t + string(ECHO) + username + " upload success").c_str(), username.size() + 24, 0);
 								int t2 = path.size() + size.size() + username.size() + 8 + 2;
-								send(*client[i], (IntToString4(t2) + string(UPDATE) + path + " " + size + " "+ username).c_str(), t2 + 1, 0);
+								send(*client[i], (IntToString4(t2) + string(UPDATE) +  size + " "+ username + " " + path).c_str(), t2 + 1, 0);
 							}
 						}
 						blockJSON.unlock();
@@ -497,6 +502,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
 		}
 	}
+	cout << username << " logout" << endl;
 	closesocket(clientSocket); // khi khong ket noi nua thi tat
 }
 
