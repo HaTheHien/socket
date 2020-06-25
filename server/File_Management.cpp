@@ -151,7 +151,7 @@ bool Container::addDocument(string name, int size, string owner, vector<string>l
 bool Container::deleteDocument(string name, string username)
 {
 	if (file["documents"].contains(name)) {
-		if (file["documents"][name]["owner"] == username) {
+		if (file["documents"][name]["owner"] != username) {
 			return false;
 		}
 		string link = file["documents"][name]["link"];
