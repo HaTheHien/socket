@@ -74,11 +74,11 @@ bool Container::addDocument(string name, int size, string owner, vector<string>l
 	}
 	json docInfo = {
 		{"size", size},
-		{"link", ROOT},
+		{"link", string(ROOT) + name},
 		{"owner", owner},
 		{"list", {}},
 	};
-	docInfo["link"] += name;
+	//docInfo["link"] += json(name);
 	docInfo["list"] = list;
 	file["documents"][name] = docInfo;
 	update();

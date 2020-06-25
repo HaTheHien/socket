@@ -133,7 +133,7 @@ int __cdecl main(void)
 	}
 
 	freeaddrinfo(result);
-
+	system("ipconfig");
 	iResult = listen(ListenSocket, SOMAXCONN);
 	if (iResult == SOCKET_ERROR) {
 		printf("listen failed with error: %d\n", WSAGetLastError());
@@ -142,7 +142,7 @@ int __cdecl main(void)
 		return 1;
 	}
 	thread EX(serverExit);
-	cout << "Enter button ESC in keyboard to exit" << endl;
+	cout << endl << "Enter button ESC in keyboard to server exit" << endl;
 	// Accept a client socket
 	while (true)
 	{
@@ -272,12 +272,15 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 									if (j == use.size() - 1)
 										use.push_back(&username);
 								}
-								continue;
+								break;;
 							}
 						}
+						else
+							getline(fin, a);
 					}
+					fin.close();
 					if (Login == true)
-						break;
+						continue;
 					else
 						send(clientSocket,("0018" +  string(NOTOK) + "login fail").c_str(), 19, 0);
 				}
@@ -285,7 +288,10 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			if (cat == READY)
 			{
 				block.unlock();
-				DownloadJSON(clientSocket);
+				if (DownloadJSON(clientSocket))
+				{
+					Login = false;
+				}
 				break;
 			}
 			if (cat == UP_TO_DATE)
@@ -295,8 +301,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			if (cat == RES)
 			{
 				check = true;
-				int i = b.find(" ", 5);
-				string username = b.substr(5, i - 5);
+				int i = b.find(" ", 8);
+				string username = b.substr(8, i - 8);
 				string password = b.substr(i + 1, byteReceive - i);
 				block.unlock();
 				ifstream fin("Login.txt");
@@ -308,28 +314,33 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					fout << password << endl;
 					fout.close();
 					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
+					fout.close();
+					fin.close();
 					continue;
 				}
 				else
 				{
 					string a;
+					bool y = true;
 					while (getline(fin, a))
 					{
 						int i = a.find(" ");
 						a = a.substr(0, i);
 						if (a == username)
 						{
-							send(clientSocket, ("0028" + string(NOTOK) + "username is already").c_str(), 28, 0);
-							continue;
+							send(clientSocket, ("0028" + string(NOTOK) + "username is used").c_str(), 28, 0);
+							y = false;
+							break;
 						}
 					}
-					Login = true;
+					fin.close();
+					if (y == false)
+						continue;
 					ofstream fout("Login.txt", ios::app);
 					fout << username;
 					fout << " ";
 					fout << password << endl;
 					fout.close();
-					fin.close();
 					send(clientSocket,("0008" + string(OK)).c_str(), 9, 0);
 					continue;
 				}
@@ -546,6 +557,7 @@ bool DownLoad(int clientSocket,string path)
 	if (!fin.is_open())
 	{
 		send(clientSocket, ("0019" + string(NOTOK) + "can't open file").c_str(), 20, 0);
+		return false;
 	}
 	long int size;
 	fin.seekg(0, ios::end);
@@ -619,15 +631,14 @@ bool DownloadJSON(int clientSocket)
 			fin.read(buf, 4092);
 			size -= 4092;
 			send(clientSocket, ("4096" + string(FILE_) + buf).c_str(), 4097, 0);
-			block.unlock();
 		}
 		else
 		{
 			int t2 = size + 8;
 			fin.read(buf, size);
 			send(clientSocket, (IntToString4(t2) + string(END_OF_FILE) + buf).c_str(), size + 9, 0);
-			block.unlock();
 		}
+		block.unlock();
 		while (true)
 		{
 			block.lock();
