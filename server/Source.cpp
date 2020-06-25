@@ -142,7 +142,8 @@ int __cdecl main(void)
 		return 1;
 	}
 	thread EX(serverExit);
-	cout << endl << "Enter button ESC in keyboard to server exit" << endl;
+	cout << endl << "Press button ESC in keyboard to server exit" << endl;
+	cout << "Press button Tab to show client online exit" << endl;
 	// Accept a client socket
 	while (true)
 	{
@@ -191,6 +192,17 @@ void serverExit()
 					}
 				}
 				exit(0);
+			}
+			if (ch == 9) // tab
+			{
+				cout << "List of user:" << endl;
+				for (int i = 0; i < use.size(); i++)
+				{
+					if (use[i])
+					{
+						cout << *use[i] << endl;
+					}
+				}
 			}
 		}
 	}
