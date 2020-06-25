@@ -40,7 +40,7 @@ public:
 	 * @param data: Maxium size should be 512 byte. If data size is too big, split it out and send multiple times.
 	 * @return Number of bytes were sent successfully. If error, return -1.
 	*/
-	int Send(char* data);
+	int Send(const char* data);
 
 	/**
 	 * @brief Receive data from server.

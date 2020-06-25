@@ -5,9 +5,11 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClientGUI", "ClientGUI\ClientGUI.vcxproj", "{5864F812-A892-4BA6-81DF-D0C99169087A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestSocket", "TestSocket\TestSocket.vcxproj", "{D2A0D531-598B-4ED5-B550-14485497E7D7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "TestSocket\TestSocket.vcxproj", "{D2A0D531-598B-4ED5-B550-14485497E7D7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtFortuneServer", "QtFortuneServer\QtFortuneServer.vcxproj", "{AA369BDE-362F-494B-9598-891FD9F6A6F3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "QtFortuneServer\QtFortuneServer.vcxproj", "{AA369BDE-362F-494B-9598-891FD9F6A6F3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QTest", "QTest\QTest.vcxproj", "{46BC6BE6-667B-4742-9AAC-36628F4079F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +39,12 @@ Global
 		{AA369BDE-362F-494B-9598-891FD9F6A6F3}.Release|x64.ActiveCfg = Release|x64
 		{AA369BDE-362F-494B-9598-891FD9F6A6F3}.Release|x64.Build.0 = Release|x64
 		{AA369BDE-362F-494B-9598-891FD9F6A6F3}.Release|x86.ActiveCfg = Release|x64
+		{46BC6BE6-667B-4742-9AAC-36628F4079F1}.Debug|x64.ActiveCfg = Debug|x64
+		{46BC6BE6-667B-4742-9AAC-36628F4079F1}.Debug|x64.Build.0 = Debug|x64
+		{46BC6BE6-667B-4742-9AAC-36628F4079F1}.Debug|x86.ActiveCfg = Debug|x64
+		{46BC6BE6-667B-4742-9AAC-36628F4079F1}.Release|x64.ActiveCfg = Release|x64
+		{46BC6BE6-667B-4742-9AAC-36628F4079F1}.Release|x64.Build.0 = Release|x64
+		{46BC6BE6-667B-4742-9AAC-36628F4079F1}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

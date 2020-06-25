@@ -24,6 +24,7 @@
     <ProjectGuid>{d2a0d531-598b-4ed5-b550-14485497e7d7}</ProjectGuid>
     <RootNamespace>TestSocket</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Test</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -40,7 +40,7 @@ void ClientSocket::ConnectToServer(string ip, string port)
     if (iResult != 0) 
     {
         WSACleanup();
-        throw exception("getaddrinfo failed: " + iResult);
+        throw exception("getaddrinfo failed");
     }
 
     //SOCKET ConnectSocket = INVALID_SOCKET;
@@ -55,7 +55,7 @@ void ClientSocket::ConnectToServer(string ip, string port)
                 closesocket(ConnectSocket);
                 ConnectSocket = INVALID_SOCKET;
                 WSACleanup();
-                throw exception("Can't connect to server: " + WSAGetLastError());
+                throw exception("Can't connect to server");
             }
             break;
         }
@@ -69,7 +69,7 @@ void ClientSocket::ConnectToServer(string ip, string port)
     }
 }
 
-int ClientSocket::Send(char* data)
+int ClientSocket::Send(const char* data)
 {
     strcpy_s(this->buffer, this->defaultBufferSize, data);
     int iResult = send(this->ConnectSocket, this->buffer, this->defaultBufferSize, 0);

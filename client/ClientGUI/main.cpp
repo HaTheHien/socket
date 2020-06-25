@@ -1,5 +1,7 @@
 #include <qapplication.h>
 #include "LoginView.h"
+#include "Protocols.h"
+#include <qthread.h>
 
 int main(int n, char** arg)
 {
