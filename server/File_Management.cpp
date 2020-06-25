@@ -16,10 +16,9 @@ int main() {
 	k["list"].push_back(1);
 	k.merge_patch(j);
 	cout << k.dump(3);
-
+	
 	return 0;
 }
-#endif // TEST
 
 Container::Container()
 {
@@ -107,11 +106,11 @@ bool Container::addDocument(string name, int size, string owner, vector<string>l
 	}
 	json docInfo = {
 		{"size", size},
-		{"link", ROOT},
+		{"link", string(ROOT) + name},
 		{"owner", owner},
 		{"list", {}},
 	};
-	docInfo["link"] += name;
+	//docInfo["link"] += json(name);
 	docInfo["list"] = list;
 	file["documents"][name] = docInfo;
 	update();

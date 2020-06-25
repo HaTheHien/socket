@@ -12,13 +12,13 @@
 #include <thread>
 #include <fstream>
 #include <string>
-#include <direct.h>
 #include <Windows.h>
 #include <conio.h>
 #include <algorithm>
 #include <filesystem>
 #include <mutex>
 #include "Header.h"
+#include "File_Management.h"
 using namespace std;
 namespace fs = std::experimental::filesystem;
 
@@ -31,7 +31,9 @@ namespace fs = std::experimental::filesystem;
 
 vector<thread*> a;
 vector<int*> client;
-
+vector<string*> use;
+Container Mjson;
+mutex blockJSON;
 char buf[4096];
 mutex block;
 char buf2[4096];
@@ -41,7 +43,7 @@ string IntToString4(int kt)
 {
 	string t = to_string(kt);
 	int n = t.size();
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < 4 - n; i++)
 	{
 		t = " " + t;
 	}
@@ -50,7 +52,8 @@ string IntToString4(int kt)
 void serverExit();
 void handle_connection(int*&p);
 bool DownLoad(int clientSocket,string path);
-bool Upload(int clientSocket, string path,long int size);
+bool Upload(int clientSocket, string path);
+bool DownloadJSON(int clientSocket);
 int addClient(vector<int*>&client,int clientSocket)
 {
 	for (int i = 0; i < client.size(); i++)
@@ -130,7 +133,7 @@ int __cdecl main(void)
 	}
 
 	freeaddrinfo(result);
-
+	system("ipconfig");
 	iResult = listen(ListenSocket, SOMAXCONN);
 	if (iResult == SOCKET_ERROR) {
 		printf("listen failed with error: %d\n", WSAGetLastError());
@@ -139,7 +142,7 @@ int __cdecl main(void)
 		return 1;
 	}
 	thread EX(serverExit);
-	cout << "Enter button ESC in keyboard to exit" << endl;
+	cout << endl << "Enter button ESC in keyboard to server exit" << endl;
 	// Accept a client socket
 	while (true)
 	{
@@ -242,24 +245,65 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 							getline(fin, a);
 							if (a == password)
 							{
-								send(clientSocket, ("0012" + string(OK) + "JSON").c_str(), 13, 0);// gui json
-								//send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0); // gui JSON
+								bool flag = false;
+								for (int j = 0; j < use.size(); j++)
+								{
+									if (a == *use[j])
+									{
+										flag = true;
+										break;
+									}
+								}
+								if (flag == true)
+								{
+									send(clientSocket, ("0029" + string(NOTOK) + "already login account").c_str(), 30, 0);
+									break;
+								}
 								Login = true;
-								break;
+								int t = 8 + Mjson.version().size();
+								send(clientSocket, (IntToString4(t) + string(OK) + Mjson.version()).c_str(), 9 + Mjson.version().size(), 0);
+								for(int j=0;j<use.size();j++)
+								{
+									if (*use[j] == "")
+									{
+										use[j] = &username;
+										break;
+									}
+									if (j == use.size() - 1)
+										use.push_back(&username);
+								}
+								break;;
 							}
 						}
+						else
+							getline(fin, a);
 					}
+					fin.close();
 					if (Login == true)
-						break;
+						continue;
 					else
-						send(clientSocket, NOTOK, 5, 0);
+						send(clientSocket,("0018" +  string(NOTOK) + "login fail").c_str(), 19, 0);
 				}
+			}
+			if (cat == READY)
+			{
+				block.unlock();
+				if (!DownloadJSON(clientSocket))
+				{
+					Login = false;
+				}
+				break;
+			}
+			if (cat == UP_TO_DATE)
+			{
+				block.unlock();
+				break;
 			}
 			if (cat == RES)
 			{
 				check = true;
-				int i = b.find(" ", 5);
-				string username = b.substr(5, i - 5);
+				int i = b.find(" ", 8);
+				string username = b.substr(8, i - 8);
 				string password = b.substr(i + 1, byteReceive - i);
 				block.unlock();
 				ifstream fin("Login.txt");
@@ -271,44 +315,51 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					fout << password << endl;
 					fout.close();
 					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
+					fout.close();
+					fin.close();
 					continue;
 				}
 				else
 				{
 					string a;
+					bool y = true;
 					while (getline(fin, a))
 					{
 						int i = a.find(" ");
 						a = a.substr(0, i);
 						if (a == username)
 						{
-							send(clientSocket, ("0008" + string(NOTOK)).c_str(), 9, 0);
-							continue;
+							send(clientSocket, ("0028" + string(NOTOK) + "username is used").c_str(), 28, 0);
+							y = false;
+							break;
 						}
 					}
-					Login = true;
+					fin.close();
+					if (y == false)
+						continue;
 					ofstream fout("Login.txt", ios::app);
 					fout << username;
 					fout << " ";
 					fout << password << endl;
 					fout.close();
-					fin.close();
-					send(clientSocket, OK, 3, 0);
+					send(clientSocket,("0008" + string(OK)).c_str(), 9, 0);
 					continue;
 				}
 			}
-			if (check == false)
-				block.unlock();
 			if (cat == EXIT)
+			{
+				block.unlock();
 				break;
+			}
 		}
+		else
+			block.unlock();
 	}
 	//Tao thu muc cho user
-	int kt = 4 + 4 + username.size() + 7;
+	int kt = 4 + 4 + username.size() + 6;
 	string t = IntToString4(kt);
 	if (Login == true)
 	{
-		_mkdir(username.c_str());
 		for (int i = 0; i < client.size(); i++)
 		{
 			if (client[i])
@@ -316,6 +367,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				send(*client[i], (t + string(ECHO) + username + " login").c_str(), username.size() + 15, 0);
 			}
 		}
+		cout << username << " login" << endl;
 	}
 	//upload download
 	while (Login == true)
@@ -340,19 +392,23 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				bool flag = false;
 				i = b.find(" ", 8);
 				string size = b.substr(8, i - 8); // kich thuoc file
-				b = b.substr(i + 1, atoi(sizebuf.c_str()) - i); // ten file
-				string path = b;
+				string path = b.substr(i + 1, atoi(sizebuf.c_str()) - i); // ten file
 				block.unlock();
 				// xu ly duplicate
 				ifstream fin(path);
-				if (fin.is_open())
+				if (fin.is_open()) //&& Mjson.get(path, username) != "")
 				{
 					fin.close();
-					send(clientSocket,("0008" + string(DUPLICATE)).c_str(), 9, 0);
+					send(clientSocket,("0008" + string(DUPLICATE_)).c_str(), 9, 0);
 					block.lock();
 					while (true)
 					{
 						byteReceive = recv(clientSocket, buf, 4096, 0);
+						if (byteReceive == 0)
+						{
+							block.unlock();
+							break;
+						}
 						if (byteReceive > 0)
 						{
 							b = buf;
@@ -364,6 +420,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 							}
 							else if (b == NO)
 							{
+
 								send(clientSocket, ("0008" + string(ABORT)).c_str(), 9, 0);
 								break;
 							}
@@ -395,15 +452,20 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					}
 					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
 					// ham trao doi du lieu
-					if (Upload(clientSocket, path, SIZE))
+					if (Upload(clientSocket, path))
 					{
+						vector<string> b;
+						blockJSON.lock();
+						Mjson.addDocument(path, SIZE, username, b);
 						for (int i = 0; i < client.size(); i++)
 						{
 							if (client[i])
 							{
-								send(*client[i], (t + string(ECHO) + username + " upload success").c_str(), username.size() + 24, 0);
+								int t2 = path.size() + size.size() + username.size() + 8 + 2;
+								send(*client[i], (IntToString4(t2) + string(UPDATE) +  size + " "+ username + " " + path).c_str(), t2 + 1, 0);
 							}
 						}
+						blockJSON.unlock();
 						cout << username << " upload file:" << path << endl;
 					}
 					else
@@ -415,7 +477,14 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				check = true;
 				block.unlock();
 				string path = b.substr(8, atoi(sizebuf.c_str()) - 8);
-				send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
+				ifstream fin(path);
+				if (!fin.is_open())
+				{
+					send(clientSocket, ("0019" + string(NOTOK) + "can't open file").c_str(), 20, 0);
+					continue;
+				}
+				else
+					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
 				while (true)
 				{
 					block.lock();
@@ -451,18 +520,21 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	}
 	delete p;
 	p = NULL;
-
-	for (int i = 0; i < client.size(); i++)
+	if (Login == true)
 	{
-		if (client[i])
+		for (int i = 0; i < client.size(); i++)
 		{
-			send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
+			if (client[i])
+			{
+				send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
+			}
 		}
+		cout << username << " logout" << endl;
 	}
 	closesocket(clientSocket); // khi khong ket noi nua thi tat
 }
 
-bool Upload(int clientSocket, string path, long int size) 
+bool Upload(int clientSocket, string path) 
 {
 	ofstream fout(path);
 	blockUpload.lock();
@@ -476,13 +548,16 @@ bool Upload(int clientSocket, string path, long int size)
 		}
 		if (byteReceive > 0)
 		{
-			if (size > 4096)
+			string b = buf2;
+			string cat = b.substr(4, 4);
+			int size = atoi(b.substr(0, 4).c_str());
+			size -= 8;
+			if (cat == ACK)
 			{
-				fout.write(buf2 + 8, 4092);
+				fout.write(buf2 + 8, size);
 				send(clientSocket, ("0008" + string(ACK)).c_str(), 9, 0);
-				size -= 4096;
 			}
-			else
+			if (cat == END_OF_FILE)
 			{
 				fout.write(buf2 + 8, size);
 				send(clientSocket, ("0008" + string(UPLOAD_DONE)).c_str(), 9, 0);
@@ -499,6 +574,7 @@ bool DownLoad(int clientSocket,string path)
 	if (!fin.is_open())
 	{
 		send(clientSocket, ("0019" + string(NOTOK) + "can't open file").c_str(), 20, 0);
+		return false;
 	}
 	long int size;
 	fin.seekg(0, ios::end);
@@ -511,13 +587,13 @@ bool DownLoad(int clientSocket,string path)
 		{
 			size -= 4092;
 			fin.read(buf, 4092);
-			send(clientSocket, ("4096" + string(FILE) + buf).c_str(), 4097, 0);
+			send(clientSocket, ("4096" + string(FILE_) + buf).c_str(), 4097, 0);
 		}
 		else
 		{
 			fin.read(buf, size);
 			int t2 = size + 8;
-			send(clientSocket, (IntToString4(t2) + string(END_OF_FILE) + buf).c_str(), 4097, 0);
+			send(clientSocket, (IntToString4(t2) + string(END_OF_FILE) + buf).c_str(), size + 9, 0);
 		}
 		block.unlock();
 		while (true)
@@ -544,8 +620,71 @@ bool DownLoad(int clientSocket,string path)
 					return true;
 				}
 			}
-			block.unlock();
+			else
+				block.unlock();
 		};
 	}
 	return false;
+}
+
+bool DownloadJSON(int clientSocket)
+{
+	blockJSON.lock();
+	ifstream fin("file.json");
+	if (!fin.is_open())
+	{
+		send(clientSocket, ("0008" + string(ERR)).c_str(), 9, 0);
+		blockJSON.unlock();
+		return false;
+	}
+	fin.seekg(0, ios::end);
+	int size = fin.tellg();
+	fin.seekg(0, ios::beg);
+	while (true)
+	{
+		block.lock();
+		if (size > 4092)
+		{
+			fin.read(buf, 4092);
+			size -= 4092;
+			send(clientSocket, ("4096" + string(FILE_) + buf).c_str(), 4097, 0);
+		}
+		else
+		{
+			int t2 = size + 8;
+			fin.read(buf, size);
+			send(clientSocket, (IntToString4(t2) + string(END_OF_FILE) + buf).c_str(), size + 9, 0);
+		}
+		block.unlock();
+		while (true)
+		{
+			block.lock();
+			int byteReceive = recv(clientSocket, buf, 4096, 0);
+			if (byteReceive == 0) // mat ket noi voi client
+			{
+				block.unlock();
+				blockJSON.unlock();
+				return false;
+			}
+			if (byteReceive > 0)
+			{
+				string b = buf;
+				b = b.substr(4, 4);
+				if (b == string(ACK))
+				{
+					block.unlock();
+					break;
+				}
+				if (b == string(DOWNLOAD_DONE))
+				{
+					block.unlock();
+					blockJSON.unlock();
+					return true;
+				}
+			}
+			else
+				block.unlock();
+		};
+	}
+	blockJSON.unlock();
 }
