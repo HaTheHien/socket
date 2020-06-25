@@ -1,5 +1,24 @@
 #include "File_Management.h"
 
+#define TEST // block this line to run .-.
+#ifdef TEST
+
+int main() {
+	vector<string> l;
+	l.push_back("d");
+	l.push_back("e");
+	l.push_back("f");
+	json j;
+	j["list"] = {};
+	j["list"].push_back("a");
+	j["list"].push_back("c");
+	j["list"].push_back("b");
+	j["list"].push_back("k");
+	j["list"] = l;
+	cout << j.dump(3);
+	return 0;
+}
+#endif
 string _version() {
 
 	time_t rawtime;
@@ -15,22 +34,6 @@ string _version() {
 		to_string(timeinfo.tm_sec);
 	return iResult;
 }
-
-#define TEST // block this line to run .-.
-//#ifdef TEST
-//int main() {
-//	json j;
-//	j["list"]["a"] = 1;
-//	j["list"]["b"] = 2;
-//	j["list"]["c"] = 3;
-//	cout << j.dump(4);
-//	for (json::iterator it = j["list"].begin(); it != j["list"].end(); ++it) {
-//		std::cout << it.key() << '\n';
-//	}
-//	return 0;
-//}
-//#endif // TEST
-
 Container::Container()
 {
 	ifstream fin(PACKG);
@@ -56,8 +59,68 @@ string Container::version()
 	return string();
 }
 
-void Container::share(vector<string> list, int mode)
+int BinarySearch(vector<string> arr, int n, string key) {
+	int l = 0;
+	int r = n - 1;
+	int mid = (r - l) / 2 + l;
+
+	while (l <= r) {
+		if (key == arr[mid]) {
+			return mid;
+		}
+		if (key < arr[mid]) {
+			r = mid - 1;
+			mid = (r - l) / 2 + l;
+		}
+		if (key > arr[mid]) {
+			l = mid + 1;
+			mid = (r - l) / 2 + l;
+		}
+	}
+	return l;
+}
+
+void Container::share(vector<string> list, int mode, string name)
 {
+	vector<string> _user;
+	for (int i = 0; i < file["documents"][name]["list"].size(); i++) {
+		_user.push_back(file["documents"][name]["list"][i].get<string>());
+	}
+
+	if (mode) {
+		for (auto key : list) {
+			if (_user.size() == 0) {
+				_user.push_back(key);
+			}
+			else {
+				int loc = BinarySearch(_user, _user.size(), key);
+				if (loc > _user.size() - 1) {
+					_user.push_back(key);
+				}
+				else {
+					if (key != _user[loc]) {
+						auto i = _user.begin();
+						i += loc;
+						_user.insert(i, key);
+					}
+				}
+			}
+		}
+	}
+	else {
+		for (auto key : list) {
+			int loc = BinarySearch(_user, _user.size(), key);
+			if (loc > _user.size() - 1) {
+				_user.push_back(key);
+			}
+			else {
+				auto i = _user.begin();
+				i += loc;
+				_user.erase(i);
+			}
+		}
+	}
+	file["documents"][name]["list"] = _user;
 }
 
 void Container::save()
@@ -88,7 +151,7 @@ bool Container::addDocument(string name, int size, string owner, vector<string>l
 bool Container::deleteDocument(string name, string username)
 {
 	if (file["documents"].contains(name)) {
-		if (file["documents"][name]["owner"] == username) {
+		if (file["documents"][name]["owner"] != username) {
 			return false;
 		}
 		string link = file["documents"][name]["link"];
@@ -137,6 +200,29 @@ vector<string> Container::listDocument()
 		list.push_back(it.key());
 	}
 	return list;
+}
+
+void Container::createCache(vector<string> share_username)
+{
+	ofstream fout("cache.txt");
+	for (auto i : share_username) {
+		fout << i << endl;
+	}
+	fout.close();
+}
+
+vector<string> Container::unpackg()
+{
+	vector<string> name;
+	ifstream fin("cache.txt");
+	while (!fin.eof())
+	{
+		string x;
+		getline(fin, x);
+		name.push_back(x);
+	}
+	fin.close();
+	return name;
 }
 
 void Container::update()

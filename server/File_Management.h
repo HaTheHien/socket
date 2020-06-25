@@ -14,7 +14,7 @@ class Container {
 private:
 	json file;
 protected:
-	void share(vector<string> list, int mode);
+	void share(vector<string> list, int mode, string name);
 	void save();
 	void update();
 public:
@@ -26,4 +26,6 @@ public:
 	string get(string name, string username);
 	uint8_t size(string name);
 	vector<string> listDocument();
+	void createCache(vector<string>share_username);
+	vector<string> unpackg();
 };

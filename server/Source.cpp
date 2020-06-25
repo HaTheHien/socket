@@ -226,7 +226,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	{
 		bool check = false;
 		block.lock();
-		int byteReceive = recv(clientSocket, buf, 4096, 0);
+		int byteReceive = recv(clientSocket, buf, 4096, MSG_WAITALL);
 		if (byteReceive == 0)
 		{
 			block.unlock();
