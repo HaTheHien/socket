@@ -1,0 +1,6 @@
+{
+	Version
+}
+{
+	{Tên, Kích thước, DS có thể truy cập}
+}
