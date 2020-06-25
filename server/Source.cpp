@@ -288,7 +288,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			if (cat == READY)
 			{
 				block.unlock();
-				if (DownloadJSON(clientSocket))
+				if (!DownloadJSON(clientSocket))
 				{
 					Login = false;
 				}
@@ -296,6 +296,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			}
 			if (cat == UP_TO_DATE)
 			{
+				block.unlock();
 				break;
 			}
 			if (cat == RES)
@@ -345,10 +346,11 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					continue;
 				}
 			}
-			if (check == false)
-				block.unlock();
 			if (cat == EXIT)
+			{
+				block.unlock();
 				break;
+			}
 		}
 		else
 			block.unlock();
@@ -394,7 +396,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				block.unlock();
 				// xu ly duplicate
 				ifstream fin(path);
-				if (fin.is_open() && Mjson.get(path, username) != "")
+				if (fin.is_open()) //&& Mjson.get(path, username) != "")
 				{
 					fin.close();
 					send(clientSocket,("0008" + string(DUPLICATE_)).c_str(), 9, 0);
@@ -402,6 +404,11 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 					while (true)
 					{
 						byteReceive = recv(clientSocket, buf, 4096, 0);
+						if (byteReceive == 0)
+						{
+							block.unlock();
+							break;
+						}
 						if (byteReceive > 0)
 						{
 							b = buf;
@@ -413,6 +420,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 							}
 							else if (b == NO)
 							{
+
 								send(clientSocket, ("0008" + string(ABORT)).c_str(), 9, 0);
 								break;
 							}
@@ -469,7 +477,14 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				check = true;
 				block.unlock();
 				string path = b.substr(8, atoi(sizebuf.c_str()) - 8);
-				send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
+				ifstream fin(path);
+				if (!fin.is_open())
+				{
+					send(clientSocket, ("0019" + string(NOTOK) + "can't open file").c_str(), 20, 0);
+					continue;
+				}
+				else
+					send(clientSocket, ("0008" + string(OK)).c_str(), 9, 0);
 				while (true)
 				{
 					block.lock();
@@ -505,15 +520,17 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	}
 	delete p;
 	p = NULL;
-
-	for (int i = 0; i < client.size(); i++)
+	if (Login == true)
 	{
-		if (client[i])
+		for (int i = 0; i < client.size(); i++)
 		{
-			send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
+			if (client[i])
+			{
+				send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
+			}
 		}
+		cout << username << " logout" << endl;
 	}
-	cout << username << " logout" << endl;
 	closesocket(clientSocket); // khi khong ket noi nua thi tat
 }
 
