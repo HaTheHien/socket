@@ -4,13 +4,19 @@
 #ifdef TEST
 int main() {
 	json j;
-	j["list"]["a"] = 1;
-	j["list"]["b"] = 2;
-	j["list"]["c"] = 3;
+	j["list"] = {};
+	j["list"].push_back(3);
+	j["list"].push_back(0);
+
 	cout << j.dump(4);
-	for (json::iterator it = j["list"].begin(); it != j["list"].end(); ++it) {
-		std::cout << it.key() << '\n';
-	}
+	json k;
+	k["list"] = {};
+	k["list"].push_back(0);
+	k["list"].push_back(0);
+	k["list"].push_back(1);
+	k.merge_patch(j);
+	cout << k.dump(3);
+
 	return 0;
 }
 #endif // TEST
@@ -40,8 +46,51 @@ string Container::version()
 	return string();
 }
 
+int BinarySearch(vector<string> arr, int n, string key) {
+	int l = 0;
+	int r = n - 1;
+	int mid = (r - l) / 2 + l;
+
+	while (l <= r) {
+		if (key == arr[mid]) {
+			return mid;
+		}
+		if (key < arr[mid]) {
+			r = mid - 1;
+			mid = (r - l) / 2 + l;
+		}
+		if (key > arr[mid]) {
+			l = mid + 1;
+			mid = (r - l) / 2 + l;
+		}
+	}
+	return l;
+}
+
 void Container::share(vector<string> list, int mode)
 {
+	vector<string> _user;
+	if (mode) {
+		for (auto key : list) {
+			if (_user.size() == 0) {
+				_user.push_back(key);
+			}
+			else {
+				int loc = BinarySearch(_user, _user.size(), key);
+				if (loc > _user.size() - 1) {
+					_user.push_back(key);
+				}
+				else {
+					auto i = _user.begin();
+					i += loc;
+					_user.insert(i, key);
+				}
+			}
+		}
+	}
+	else {
+
+	}
 }
 
 void Container::save()
