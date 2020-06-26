@@ -157,7 +157,7 @@ int __cdecl main(void)
 			cout << "client conect" << endl;
 			for (int i = 0; i < a.size(); i++)
 			{
-				if (a[i] != NULL && a[i]->joinable())
+				if (a[i] != NULL && !a[i]->joinable())
 				{
 					check = true;
 					a[i]->join();
@@ -170,6 +170,7 @@ int __cdecl main(void)
 			{
 				a.push_back(NULL);
 				a[a.size() - 1] = new thread(handle_connection, ref(client[j]));
+				//a[a.size() - 1]->detach();
 			}
 		}
 	}
@@ -217,7 +218,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	//test
 	/*block.lock();
 	int byteReceive = recv(clientSocket, buf, 4096, 0);
-	cout << buf << endl;
+	//cout << buf << endl;
 	delete p;
 	p = NULL;
 	block.unlock();
@@ -226,9 +227,9 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	while (true)
 	{
 		bool check = false;
-		block.lock();
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
-		cout << buf << endl;
+		//cout << buf << endl;
+		block.lock();
 		if (byteReceive == 0)
 		{
 			block.unlock();
@@ -262,7 +263,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 								bool flag = false;
 								for (int j = 0; j < use.size(); j++)
 								{
-									if (a == *use[j])
+									if (username == *use[j])
 									{
 										flag = true;
 										break;
@@ -379,13 +380,13 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	if (Login == true)
 	{
 		echo.lock();
-		for (int i = 0; i < client.size(); i++)
+		/*for (int i = 0; i < client.size(); i++)
 		{
 			if (client[i])
 			{
-				send(*client[i], (t + string(ECHO) + username + " login").c_str(), username.size() + 15, 0);
+				send(*client[i], (t + string(ECHO) + username + " login").c_str(), username.size() + 14, 0);
 			}
-		}
+		}*/
 		cout << username << " login" << endl;
 		echo.unlock();
 	}
@@ -393,9 +394,9 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	while (Login == true)
 	{
 		bool check = false;
-		block.lock();
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
-		cout << buf << endl;
+		//cout << buf << endl;
+		block.lock();
 		if (byteReceive == 0)
 		{
 			block.unlock();
@@ -571,13 +572,13 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	if (Login == true)
 	{
 		echo.lock();
-		for (int i = 0; i < client.size(); i++)
+		/*for (int i = 0; i < client.size(); i++)
 		{
 			if (client[i])
 			{
-				send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 1, 0);
+				send(*client[i], (t + string(ECHO) + username + " logout").c_str(), kt + 2, 0);
 			}
-		}
+		}*/
 		echo.unlock();
 		cout << username << " logout" << endl;
 	}
@@ -591,7 +592,7 @@ bool Upload(int clientSocket, string path)
 	while (true) 
 	{
 		int byteReceive = recv(clientSocket, buf2, 4096, 0);
-		cout << buf << endl;
+		//cout << buf << endl;
 		if (byteReceive == 0) // mat ket noi client
 		{
 			blockUpload.unlock();
@@ -656,7 +657,7 @@ bool DownLoad(int clientSocket,string path)
 		{
 			block.lock();
 			int byteReceive = recv(clientSocket, buf, 4096, 0);
-			cout << buf << endl;
+			//cout << buf << endl;
 			if (byteReceive == 0) // mat ket noi voi client
 			{
 				block.unlock();
