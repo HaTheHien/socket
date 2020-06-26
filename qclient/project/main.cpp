@@ -7,16 +7,18 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     LoginView loginView;
-    //MainView mainView;
+    MainView mainView;
 
-//    QObject::connect(&loginView, &LoginView::OnLoginCompleted,
-//                     &mainView, &MainView::setClientSocket);
-//    QObject::connect(&loginView, &LoginView::OnLoginViewClose,
-//                     &mainView, &MainView::show);
+    QObject::connect(&loginView, &LoginView::OnLoginCompleted,
+                     &mainView, &MainView::setClientSocket);
+    QObject::connect(&loginView, &LoginView::OnLoginViewClose,
+                     &mainView, &MainView::show);
+    QObject::connect(&loginView, &LoginView::OnLoginCompleted,
+                     &mainView, &MainView::InitFileListFromJson);
 
     loginView.show();
 
-    //mainView.show();
+    mainView.show();
 
     return a.exec();
 

@@ -9,6 +9,9 @@
 #include <QIcon>
 #include <QAbstractButton>
 #include <QTimer>
+#include <QFileDialog>
+
+#define STANDARD_PACKET_SIZE 4096
 
 class Session: public QObject
 {
@@ -25,17 +28,23 @@ public:
     void StartToLogin(ClientSocket* clientSocket, QString username, QString password);
     void Login(ClientSocket* clientSocket, QString username, QString password);
     void Register(ClientSocket* socket, QString username, QString password);
-    void Upload(ClientSocket* socket, QString filename);
+    void Upload(ClientSocket* socket);
     void Download(ClientSocket* socket, QString filename);
 
     void Login_();
+    void echo(QString mess);
+    void echo_(QString message, int t = 2);
 
     ClientSocket* getPassBySocket();
 
 signals:
-    void OnServerEcho(QString& message);
+    void OnServerEcho(QString message);
+    void OnServerEcho__();
+    void OnServerEcho_(QString message, int t = 2);
     //void OnLoginSuccess();
     void OnLoginSuccess(ClientSocket* clientSocket);
+    void OnDownloadFinished();
+    void OnUploadFished();
 };
 
 void Login(ClientSocket* clientSocket, QString username, QString password);

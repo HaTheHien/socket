@@ -62,8 +62,14 @@ ClientSocket::ClientSocket(QString hostIP, QString port)
 
 ClientSocket::~ClientSocket()
 {
-    this->TCPSocket->disconnectFromHost();
+    if(this->TCPSocket->isValid())
+    {
+        this->TCPSocket->disconnectFromHost();
+
+    }
+    this->TCPSocket->waitForDisconnected();
     delete this->TCPSocket;
+    this->TCPSocket = nullptr;
 }
 
 bool ClientSocket::connectToServer()

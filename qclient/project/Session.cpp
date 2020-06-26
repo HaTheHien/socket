@@ -1,19 +1,19 @@
 #include "Session.h"
 
-QString GetRandomString()
-{
-   const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-   const int randomStringLength = 12; // assuming you want random strings of 12 characters
+//QString GetRandomString()
+//{
+//   const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+//   const int randomStringLength = 12; // assuming you want random strings of 12 characters
 
-   QString randomString;
-   for(int i=0; i<randomStringLength; ++i)
-   {
-       int index = qrand() % possibleCharacters.length();
-       QChar nextChar = possibleCharacters.at(index);
-       randomString.append(nextChar);
-   }
-   return randomString;
-}
+//   QString randomString;
+//   for(int i=0; i<randomStringLength; ++i)
+//   {
+//       int index = qrand() % possibleCharacters.length();
+//       QChar nextChar = possibleCharacters.at(index);
+//       randomString.append(nextChar);
+//   }
+//   return randomString;
+//}
 
 Session::Session()
 {
@@ -180,6 +180,7 @@ void Session::Login(ClientSocket *clientSocket, QString username, QString passwo
         }
         else
         {
+            fout.close();
             throw std::exception("Unknown Exception!");
         }
 
@@ -187,6 +188,7 @@ void Session::Login(ClientSocket *clientSocket, QString username, QString passwo
         clientSocket->Send(dataToSend);
     }
 
+    fout.close();
     emit OnLoginSuccess(clientSocket);
     return;
 }
@@ -259,9 +261,244 @@ void Session::Register(ClientSocket *clientSocket, QString username, QString pas
     } while(true);
 }
 
+void Session::Upload(ClientSocket *clientSocket)
+{
+    if(clientSocket == nullptr)
+    {
+        throw std::exception("Upload: clientSocket: Null Exception!");
+    }
+    if(!clientSocket->isValid())
+    {
+        throw std::exception("Upload: Invalid Socket Exception!");
+    }
+
+    //ASK WHERE IS FILE LOCATED
+    QFileDialog fileDialog;
+    fileDialog.setFileMode(QFileDialog::FileMode::ExistingFile);
+    //Get the path
+    QString filePath = fileDialog.getOpenFileName();
+    qDebug() << filePath;
+    //Just take name
+    QString filename = filePath.mid(filePath.lastIndexOf('/') + 1);
+    qDebug() << filename;
+
+    QFileInfo fileInfo(filePath);
+    qint64 fileSize = fileInfo.size();
+
+    //<Packet size: 4byte> <UPLOAD> <File size> <space> <file name>
+    QString dataToSend;
+
+    QString packetSize = QString::number(4 + 4 + fileSize + 1 + filename.length());
+    for(int i = packetSize.length(); i < 4; i++)
+    {
+        packetSize = "0" + packetSize;
+    }
+
+    dataToSend = packetSize + UPLOAD + QString::number(fileSize) + " " + filename;
+    clientSocket->Send(dataToSend);
+
+    QString feedback;
+    QString anwserCode;
+    //UPLOAD REQUEST
+    while(true)
+    {
+        clientSocket->Receive();
+        feedback = clientSocket->getBuffer().data();
+        anwserCode = feedback.mid(4,4);
+
+        if(anwserCode == OK)
+        {
+            break;
+        }
+        else if(anwserCode == ECHO)
+        {
+            QString echo = feedback.mid(8);
+            emit OnServerEcho(echo);
+            continue;
+        }
+        else
+        {
+            qDebug() << feedback;
+            throw std::exception("Upload: Unknown Exception!");
+        }
+    }
+
+    QFile fileToUpload(filePath);
+    QTextStream data(&fileToUpload);
+    qint64 remaining = fileSize;
+
+    //<Packet size: 4 byte> + <FILE_: 4 byte> + <Data> = STANDARD_PACKET_SIZE
+    while(!data.atEnd())
+    {
+        if(remaining > STANDARD_PACKET_SIZE - 8)
+        {
+            packetSize = QString::number(STANDARD_PACKET_SIZE);
+            anwserCode = FILE_;
+        }
+        else
+        {
+            //This is last packet
+            packetSize = QString::number(remaining);
+            for(int i = packetSize.length(); i < 4; i++)
+            {
+                packetSize = "0" + packetSize;
+            }
+
+            anwserCode = END_OF_FILE;
+        }
+
+        remaining -= STANDARD_PACKET_SIZE - 8;
+
+        dataToSend = packetSize + anwserCode + data.read(STANDARD_PACKET_SIZE - 8);
+        clientSocket->Send(dataToSend);
+
+        clientSocket->Receive();
+        feedback = clientSocket->getBuffer().data();
+        anwserCode = feedback.mid(4,4);
+
+        if(anwserCode == ACK)
+        {
+            continue;
+        }
+        else if(anwserCode == ECHO)
+        {
+            QString echo = feedback.mid(8);
+            emit OnServerEcho(echo);
+            continue;
+        }
+        else if(anwserCode == UPLOAD_DONE)
+        {
+            emit OnUploadFished();
+        }
+        else
+        {
+            qDebug() << feedback;
+            throw std::exception("Upload: Unknown Exception!");
+        }
+    }
+
+    fileToUpload.close();
+}
+
+void Session::Download(ClientSocket *clientSocket, QString filename)
+{
+    if(clientSocket == nullptr)
+    {
+        throw std::exception("Download: clientSocket: Null Exception!");
+    }
+    if(!clientSocket->isValid())
+    {
+        throw std::exception("Download: Invalid Socket Exception!");
+    }
+
+    //<Packet size: 4 byte> <DOWNLOAD: 4 byte> <File name>
+    QString dataToSend;
+
+    QString packetSize = QString::number(4 + 4 + filename.length());
+    for(int i = packetSize.length(); i < 4; i++)
+    {
+        packetSize = "0" + packetSize;
+    }
+    dataToSend = packetSize + DOWNLOAD + filename;
+
+    clientSocket->Send(dataToSend);
+
+    QString feedback;
+    QString anwserCode;
+    //DOWNLOAD REQUEST
+    do
+    {
+        clientSocket->Receive();
+        feedback = clientSocket->getBuffer().data();
+        anwserCode = feedback.mid(4,4);
+
+        //Server anwser: <Packet size: 4 byte> <OK: 4 byte>
+        if(anwserCode == OK)
+        {
+            dataToSend = "0008" + QString(READY);
+            clientSocket->Send(dataToSend);
+            break;
+        }
+        else if(anwserCode == ECHO)
+        {
+            QString echo = feedback.mid(8);
+            emit OnServerEcho(echo);
+            continue;
+        }
+        else
+        {
+            qDebug() << feedback;
+            throw std::exception("Download: Unknown Exception!");
+        }
+    } while(true);
+
+    //ASK WHERE TO SAVE
+    QFileDialog fileDialog;
+    QString savedPath = fileDialog.getSaveFileName(nullptr, "Save as", filename);
+
+    //START TO DOWNLOAD
+    ofstream fout(savedPath.toStdString());
+    QString fileData;
+    while(true)
+    {
+        clientSocket->Receive();
+        feedback = clientSocket->getBuffer().data();
+        anwserCode = feedback.mid(4,4);
+
+        if(anwserCode == FILE_)
+        {
+            fileData = feedback.mid(8);
+            fout<<fileData.toStdString();
+        }
+        else if(anwserCode == END_OF_FILE)
+        {
+            fileData = feedback.mid(8);
+            fout<<fileData.toStdString();
+
+            dataToSend = "0008" + QString(DOWNLOAD_DONE);
+            clientSocket->Send(dataToSend);
+
+            fout.close();
+            emit OnDownloadFinished();
+            return;
+        }
+        else if(anwserCode == ECHO)
+        {
+            QString echo = feedback.mid(8);
+            emit OnServerEcho(echo);
+            continue;
+        }
+        else
+        {
+            fout.close();
+            throw std::exception("Download: Unknown Exception!");
+        }
+
+        dataToSend = "0008" + QString(ACK);
+        clientSocket->Send(dataToSend);
+    }
+
+    fout.close();
+    emit OnDownloadFinished();
+    return;
+}
+
 void Session::Login_()
 {
     this->Login(passBySocket,username,password);
+}
+
+void Session::echo(QString mess)
+{
+    qDebug() << "Emit " << mess;
+    emit OnServerEcho(mess);
+    emit OnServerEcho__();
+}
+
+void Session::echo_(QString message, int t)
+{
+    qDebug() << "Emit " << message;
+    emit OnServerEcho_(message, t);
 }
 
 ClientSocket *Session::getPassBySocket()
@@ -353,7 +590,7 @@ void Login(ClientSocket *clientSocket, QString username, QString password)
     //UPDATE JSON FILE
 
     ofstream fout(PACKG); //"file.json"
-    fout <<"{\n}";
+
     QString fileData;
     while (true)
     {
@@ -373,7 +610,7 @@ void Login(ClientSocket *clientSocket, QString username, QString password)
 
             dataToSend = "0008" + QString(DOWNLOAD_DONE);
             clientSocket->Send(dataToSend);
-
+            fout.close();
             //emit OnLoginSuccess(clientSocket);
             return;
         }
@@ -385,6 +622,7 @@ void Login(ClientSocket *clientSocket, QString username, QString password)
         }
         else
         {
+            fout.close();
             throw std::exception("Unknown Exception!");
         }
 
@@ -392,6 +630,7 @@ void Login(ClientSocket *clientSocket, QString username, QString password)
         clientSocket->Send(dataToSend);
     }
 
+    fout.close();
     //emit OnLoginSuccess(clientSocket);
     return;
 }

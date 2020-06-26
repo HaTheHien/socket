@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     ClientSocket.cpp \
+    DownloadQueue.cpp \
     File_Management.cpp \
     MainView.cpp \
     Session.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
 
 HEADERS += \
     ClientSocket.h \
+    DownloadQueue.h \
     File_Management.h \
     Header.h \
     LoginView.h \

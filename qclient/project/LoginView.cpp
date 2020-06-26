@@ -67,11 +67,12 @@ void LoginView::OnLoginButtonClick()
 
         loginSess.Login(clientSocket, ui->usernameInput->text(), ui->passwordInput->text());
 
-        emit OnLoginCompleted(clientSocket);
 
         qDebug() <<"Login Success!";
         this->hide();
+
         emit OnLoginViewClose();
+        emit OnLoginCompleted(clientSocket);
 
         return;
 
