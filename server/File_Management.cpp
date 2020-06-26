@@ -1,24 +1,24 @@
 #include "File_Management.h"
 
 #define TEST // block this line to run .-.
-#ifdef TEST
-
-int main() {
-	vector<string> l;
-	l.push_back("d");
-	l.push_back("e");
-	l.push_back("f");
-	json j;
-	j["list"] = {};
-	j["list"].push_back("a");
-	j["list"].push_back("c");
-	j["list"].push_back("b");
-	j["list"].push_back("k");
-	j["list"] = l;
-	cout << j.dump(3);
-	return 0;
-}
-#endif
+//#ifdef TEST
+//
+//int main() {
+//	vector<string> l;
+//	l.push_back("d");
+//	l.push_back("e");
+//	l.push_back("f");
+//	json j;
+//	j["list"] = {};
+//	j["list"].push_back("a");
+//	j["list"].push_back("c");
+//	j["list"].push_back("b");
+//	j["list"].push_back("k");
+//	j["list"] = l;
+//	cout << j.dump(3);
+//	return 0;
+//}
+//#endif
 string _version() {
 
 	time_t rawtime;
@@ -47,6 +47,7 @@ Container::Container()
 
 void Container::Create()
 {
+	_mkdir("root");
 	file["version"] = _version();
 	file["documents"] = {};
 	update();
@@ -142,8 +143,9 @@ bool Container::addDocument(string name, int size, string owner, vector<string>l
 		{"list", {}},
 	};
 	//docInfo["link"] += json(name);
-	docInfo["list"] = list;
+	docInfo["list"] = {};
 	file["documents"][name] = docInfo;
+	share(list, 1, name);
 	update();
 	return true;
 }
@@ -215,6 +217,8 @@ vector<string> Container::unpackg()
 {
 	vector<string> name;
 	ifstream fin("cache.txt");
+	if (!fin.is_open())
+		return name;
 	while (!fin.eof())
 	{
 		string x;

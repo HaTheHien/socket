@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <string>
+#include <direct.h>
 #include <fstream>
 #include <iomanip>
 #include "json.hpp"

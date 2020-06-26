@@ -226,7 +226,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	{
 		bool check = false;
 		block.lock();
-		int byteReceive = recv(clientSocket, buf, 4096, MSG_WAITALL);
+		int byteReceive = recv(clientSocket, buf, 4096, 0);
+		cout << buf << endl;
 		if (byteReceive == 0)
 		{
 			block.unlock();
@@ -387,6 +388,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		bool check = false;
 		block.lock();
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
+		cout << buf << endl;
 		if (byteReceive == 0)
 		{
 			block.unlock();
@@ -405,10 +407,11 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 				i = b.find(" ", 8);
 				string size = b.substr(8, i - 8); // kich thuoc file
 				string path = b.substr(i + 1, atoi(sizebuf.c_str()) - i); // ten file
+				path = ROOT + path;
 				block.unlock();
 				// xu ly duplicate
 				ifstream fin(path);
-				if (fin.is_open()) //&& Mjson.get(path, username) != "")
+				if (fin.is_open()) 
 				{
 					fin.close();
 					send(clientSocket,("0008" + string(DUPLICATE_)).c_str(), 9, 0);
@@ -473,7 +476,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 						{
 							if (client[i])
 							{
-								int t2 = path.size() + size.size() + username.size() + 8 + 2;
+								int t2 = path.size() + size.size() + username.size() + 8 + 2;  
 								send(*client[i], (IntToString4(t2) + string(UPDATE) +  size + " "+ username + " " + path).c_str(), t2 + 1, 0);
 							}
 						}
@@ -487,8 +490,15 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 			if (cat == DOWNLOAD)
 			{
 				check = true;
-				block.unlock();
 				string path = b.substr(8, atoi(sizebuf.c_str()) - 8);
+				path = ROOT + path;
+				block.unlock();
+				/*string law = Mjson.get(path, username);
+				if (law == "")
+				{
+					send(clientSocket, ("0019" + string(NOTOK) + "can't law download file").c_str(), 20, 0);
+					continue;
+				}*/
 				ifstream fin(path);
 				if (!fin.is_open())
 				{
@@ -553,6 +563,7 @@ bool Upload(int clientSocket, string path)
 	while (true)
 	{
 		int byteReceive = recv(clientSocket, buf2, 4096, 0);
+		cout << buf << endl;
 		if (byteReceive == 0) // mat ket noi client
 		{
 			blockUpload.unlock();
@@ -612,6 +623,7 @@ bool DownLoad(int clientSocket,string path)
 		{
 			block.lock();
 			int byteReceive = recv(clientSocket, buf, 4096, 0);
+			cout << buf << endl;
 			if (byteReceive == 0) // mat ket noi voi client
 			{
 				block.unlock();
@@ -642,61 +654,7 @@ bool DownLoad(int clientSocket,string path)
 bool DownloadJSON(int clientSocket)
 {
 	blockJSON.lock();
-	ifstream fin("file.json");
-	if (!fin.is_open())
-	{
-		send(clientSocket, ("0008" + string(ERR)).c_str(), 9, 0);
-		blockJSON.unlock();
-		return false;
-	}
-	fin.seekg(0, ios::end);
-	int size = fin.tellg();
-	fin.seekg(0, ios::beg);
-	while (true)
-	{
-		block.lock();
-		if (size > 4092)
-		{
-			fin.read(buf, 4092);
-			size -= 4092;
-			send(clientSocket, ("4096" + string(FILE_) + buf).c_str(), 4097, 0);
-		}
-		else
-		{
-			int t2 = size + 8;
-			fin.read(buf, size);
-			send(clientSocket, (IntToString4(t2) + string(END_OF_FILE) + buf).c_str(), size + 9, 0);
-		}
-		block.unlock();
-		while (true)
-		{
-			block.lock();
-			int byteReceive = recv(clientSocket, buf, 4096, 0);
-			if (byteReceive == 0) // mat ket noi voi client
-			{
-				block.unlock();
-				blockJSON.unlock();
-				return false;
-			}
-			if (byteReceive > 0)
-			{
-				string b = buf;
-				b = b.substr(4, 4);
-				if (b == string(ACK))
-				{
-					block.unlock();
-					break;
-				}
-				if (b == string(DOWNLOAD_DONE))
-				{
-					block.unlock();
-					blockJSON.unlock();
-					return true;
-				}
-			}
-			else
-				block.unlock();
-		};
-	}
+	bool flag = DownLoad(clientSocket, PACKG);
 	blockJSON.unlock();
+	return flag;
 }
