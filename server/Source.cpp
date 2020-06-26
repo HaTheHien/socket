@@ -404,7 +404,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		}
 		if (byteReceive > 0)
 		{
-			echo.lock();
+			//echo.lock();
 
 			string b = buf;
 			string sizebuf = b.substr(0, 4);
@@ -558,7 +558,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 						block.unlock();
 				}
 			}
-			echo.unlock();
+			//echo.unlock();
 			if (cat == EXIT)
 			{
 				break;
