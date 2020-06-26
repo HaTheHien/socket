@@ -1,4 +1,11 @@
 {
-    "documents": null,
-    "version": "120-177-22-55-55"
+    "documents": {
+        "abc": {
+            "link": "root/abc",
+            "list": [],
+            "owner": "abc",
+            "size": 12
+        }
+    },
+    "version": "120-176-16-21-43"
 }
