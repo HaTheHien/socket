@@ -23,6 +23,7 @@
 #define END_OF_FILE "E_OF"
 #define UPDATE "U_D_"
 #define UP_TO_DATE "UTDT"
+#define RESEND "RSND"
 
 //4 Byte: kich thuoc
 //4 Byte: Defined code 

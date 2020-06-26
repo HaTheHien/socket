@@ -52,7 +52,7 @@ IF size > server's available:
 
 IF client send: <Packet size: 4 byte> <END_OF_FILE: 4 byte>
 	This is the last upload packet.
-Server anwser: <Packet size: 4 byte> <UPLOAD_DONE>
+Server anwser: <Packet size: 4 byte> <UPLOAD_DONE> <JSON Version>
 
 
 - Download Protocol:

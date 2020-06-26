@@ -1,0 +1,17 @@
+{
+    "documents": {
+        "Protocol.txt ": {
+            "link": "root/Protocol.txt ",
+            "list": null,
+            "owner": "hoangDuong",
+            "size": 2779
+        },
+        "abc": {
+            "link": "root/abc",
+            "list": [],
+            "owner": "abc",
+            "size": 12
+        }
+    },
+    "version": "120-177-22-36-10"
+}

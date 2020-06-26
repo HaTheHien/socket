@@ -145,7 +145,7 @@ bool Container::addDocument(string name, int size, string owner, vector<string>l
 	//docInfo["link"] += json(name);
 	docInfo["list"] = {};
 	file["documents"][name] = docInfo;
-	share(list, 1, name);
+	//share(list, 1, name);
 	update();
 	return true;
 }

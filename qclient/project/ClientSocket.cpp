@@ -42,6 +42,7 @@ ClientSocket::ClientSocket(QString hostIP, qint16 port)
 {
     this->hostIP = hostIP;
     this->port = port;
+    this->TCPSocket = new QTcpSocket();
 
     if(this->connectToServer() == false)
     {
@@ -53,6 +54,10 @@ ClientSocket::ClientSocket(QString hostIP, QString port)
 {
     this->hostIP = hostIP;
     this->port = port.toUShort();
+    this->TCPSocket = new QTcpSocket();
+
+//    QObject::connect(this->TCPSocket, &QTcpSocket::errorOccurred,
+//                     this, &ClientSocket::errorOccured);
 
     if(this->connectToServer() == false)
     {
@@ -65,23 +70,27 @@ ClientSocket::~ClientSocket()
     if(this->TCPSocket->isValid())
     {
         this->TCPSocket->disconnectFromHost();
-
     }
     this->TCPSocket->waitForDisconnected();
+
+//    QObject::disconnect(this->TCPSocket, &QTcpSocket::errorOccurred,
+//                        this, &ClientSocket::errorOccured);
+
     delete this->TCPSocket;
     this->TCPSocket = nullptr;
 }
 
 bool ClientSocket::connectToServer()
 {
-    this->TCPSocket = new QTcpSocket();
+    //this->TCPSocket = new QTcpSocket();
     this->TCPSocket->connectToHost(this->hostIP, this->port);
     return this->TCPSocket->waitForConnected();
 }
 
 ClientSocket::ClientSocket()
 {
-
+//    QObject::connect(this->TCPSocket, &QTcpSocket::errorOccurred,
+//                     this, &ClientSocket::errorOccured);
 }
 
 int ClientSocket::Send(const QString &data)
@@ -96,10 +105,16 @@ void ClientSocket::Receive()
     {
         this->buffer = this->TCPSocket->readAll();
     }
-    else
-    {
-        throw std::exception("Server time out!");
-    }
+//    else
+//    {
+//        throw std::exception("Server time out!");
+//    }
+
+//    while(!this->TCPSocket->waitForReadyRead())
+//    {
+//        //wait forever
+//    }
+//    this->buffer = this->TCPSocket->readAll();
 }
 
 QByteArray ClientSocket::getBuffer()
@@ -121,6 +136,9 @@ void ClientSocket::errorOccured(QAbstractSocket::SocketError error)
 
 bool ClientSocket::isValid()
 {
+    if(this->TCPSocket == nullptr)
+        return false;
+
     return this->TCPSocket->isValid();
 }
 

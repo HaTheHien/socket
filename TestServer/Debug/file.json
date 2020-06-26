@@ -1,0 +1,11 @@
+{
+    "documents": {
+        "abc": {
+            "link": "root/abc",
+            "list": [],
+            "owner": "abc",
+            "size": 12
+        }
+    },
+    "version": "120-176-16-21-43"
+}

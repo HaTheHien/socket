@@ -52,6 +52,12 @@ MainView::~MainView()
         delete  clientSocket;
         clientSocket = nullptr;
     }
+
+    if(this->downloadQueue != nullptr)
+    {
+        delete this->downloadQueue;
+        this->downloadQueue = nullptr;
+    }
 }
 
 void MainView::setClientSocket(ClientSocket *sock)
@@ -102,11 +108,14 @@ void MainView::OnDownLoadButtonClicked()
             ui->label->setText(mess);
             ui->label->show();
         };
-        QObject::connect(&mySession, &Session::OnServerEcho,
-                         f);
+        QObject::connect(&mySession, &Session::OnServerEcho, f);
 
-        mySession.echo("Things happened!");
-        mySession.Download(this->clientSocket, fileToDownload);
+        QString savePath = QFileDialog::getSaveFileName(this, "Save as", fileToDownload);
+        if(savePath.indexOf('.') == -1) //Not found extension
+        {
+            savePath += ".txt";
+        }
+        mySession.Download(this->clientSocket, fileToDownload, savePath);
     }
     catch(std::exception& e)
     {
@@ -129,11 +138,11 @@ void MainView::OnUpLoadButtonClicked()
         auto f = [&](QString mess){
             ui->label->setText(mess);
             ui->label->show();
+            QTimer::singleShot(2000, ui->label, &QLabel::hide);
         };
         QObject::connect(&mySession, &Session::OnServerEcho,
                          f);
 
-        mySession.echo("Things happened!");
         mySession.Upload(this->clientSocket);
     }
     catch(std::exception& e)
@@ -160,6 +169,11 @@ void MainView::InitFileListFromJson()
 
     fileList.sort();
     fileListModel.setStringList(fileList);
+}
+
+void MainView::UpdateFileList(QString filename)
+{
+
 }
 
 

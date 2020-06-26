@@ -140,7 +140,7 @@ void Session::Login(ClientSocket *clientSocket, QString username, QString passwo
         else
         {
             qDebug() <<"anserCode: " << anwserCode;
-            throw std::exception("Unknown Exception!");
+            throw std::exception("Login: Unknown Exception!");
         }
 
     } while(true);
@@ -282,13 +282,19 @@ void Session::Upload(ClientSocket *clientSocket)
     QString filename = filePath.mid(filePath.lastIndexOf('/') + 1);
     qDebug() << filename;
 
+
     QFileInfo fileInfo(filePath);
     qint64 fileSize = fileInfo.size();
+
+    if(fileSize > 200*1024*1024)    //Maximum upload file is 200MB
+    {
+        throw std::exception("Upload: Oversize!");
+    }
 
     //<Packet size: 4byte> <UPLOAD> <File size> <space> <file name>
     QString dataToSend;
 
-    QString packetSize = QString::number(4 + 4 + fileSize + 1 + filename.length());
+    QString packetSize = QString::number(4 + 4 + QString::number(fileSize).length() + 1 + filename.length());
     for(int i = packetSize.length(); i < 4; i++)
     {
         packetSize = "0" + packetSize;
@@ -312,9 +318,16 @@ void Session::Upload(ClientSocket *clientSocket)
         }
         else if(anwserCode == ECHO)
         {
+//            dataToSend = "0008" + QString(ERR);
+//            clientSocket->Send(dataToSend);
+
             QString echo = feedback.mid(8);
             emit OnServerEcho(echo);
-            continue;
+            break;
+        }
+        else if(anwserCode == DUPLICATE_)
+        {
+            throw std::exception("Upload: Duplicate file name!");
         }
         else
         {
@@ -323,17 +336,25 @@ void Session::Upload(ClientSocket *clientSocket)
         }
     }
 
-    QFile fileToUpload(filePath);
-    QTextStream data(&fileToUpload);
+    //QFile fileToUpload(filePath);
+    //QTextStream data(&fileToUpload);
+
+    ifstream fin(filePath.toStdString(), ios::binary);
+    char binanyData[4088];
+
     qint64 remaining = fileSize;
 
     //<Packet size: 4 byte> + <FILE_: 4 byte> + <Data> = STANDARD_PACKET_SIZE
-    while(!data.atEnd())
+    while(remaining > 0)
     {
+        int tmp;
+
         if(remaining > STANDARD_PACKET_SIZE - 8)
         {
             packetSize = QString::number(STANDARD_PACKET_SIZE);
             anwserCode = FILE_;
+
+            tmp = 4088;
         }
         else
         {
@@ -345,43 +366,53 @@ void Session::Upload(ClientSocket *clientSocket)
             }
 
             anwserCode = END_OF_FILE;
+            tmp = remaining;
         }
 
         remaining -= STANDARD_PACKET_SIZE - 8;
 
-        dataToSend = packetSize + anwserCode + data.read(STANDARD_PACKET_SIZE - 8);
+        fin.read(binanyData, tmp);
+
+        dataToSend = packetSize + anwserCode + QString(binanyData);
         clientSocket->Send(dataToSend);
 
-        clientSocket->Receive();
-        feedback = clientSocket->getBuffer().data();
-        anwserCode = feedback.mid(4,4);
+//        clientSocket->Receive();
+//        feedback = clientSocket->getBuffer().data();
+//        anwserCode = feedback.mid(4,4);
 
-        if(anwserCode == ACK)
-        {
-            continue;
-        }
-        else if(anwserCode == ECHO)
-        {
-            QString echo = feedback.mid(8);
-            emit OnServerEcho(echo);
-            continue;
-        }
-        else if(anwserCode == UPLOAD_DONE)
-        {
-            emit OnUploadFished();
-        }
-        else
-        {
-            qDebug() << feedback;
-            throw std::exception("Upload: Unknown Exception!");
-        }
+//        if(anwserCode == ACK)
+//        {
+//            continue;
+//        }
+//        else if(anwserCode == ECHO)
+//        {
+//            QString echo = feedback.mid(8);
+//            emit OnServerEcho(echo);
+//            continue;
+//        }
+//        else if(anwserCode == UPLOAD_DONE)
+//        {
+//            emit OnUploadFished();
+
+//            fileToUpload.close();
+//            return;
+//        }
+//        else
+//        {
+//            qDebug() << feedback;
+//            throw std::exception("Upload: Unknown Exception!");
+//        }
     }
 
-    fileToUpload.close();
+    emit OnUploadFished();
+    fin.close();
+    //fileToUpload.close();
 }
 
-void Session::Download(ClientSocket *clientSocket, QString filename)
+void Session::Download(ClientSocket *clientSocket, QString filename, QString savePath)
 {
+    //savePath = filename;
+
     if(clientSocket == nullptr)
     {
         throw std::exception("Download: clientSocket: Null Exception!");
@@ -421,9 +452,12 @@ void Session::Download(ClientSocket *clientSocket, QString filename)
         }
         else if(anwserCode == ECHO)
         {
+            dataToSend = "0008" + QString(ERR);
+            clientSocket->Send(dataToSend);
+
             QString echo = feedback.mid(8);
             emit OnServerEcho(echo);
-            continue;
+            return;
         }
         else
         {
@@ -432,12 +466,8 @@ void Session::Download(ClientSocket *clientSocket, QString filename)
         }
     } while(true);
 
-    //ASK WHERE TO SAVE
-    QFileDialog fileDialog;
-    QString savedPath = fileDialog.getSaveFileName(nullptr, "Save as", filename);
-
     //START TO DOWNLOAD
-    ofstream fout(savedPath.toStdString());
+    ofstream fout(savePath.toStdString());
     QString fileData;
     while(true)
     {
@@ -464,6 +494,10 @@ void Session::Download(ClientSocket *clientSocket, QString filename)
         }
         else if(anwserCode == ECHO)
         {
+
+            dataToSend = "0008" + QString(RESEND);
+            clientSocket->Send(dataToSend);
+
             QString echo = feedback.mid(8);
             emit OnServerEcho(echo);
             continue;
@@ -482,6 +516,7 @@ void Session::Download(ClientSocket *clientSocket, QString filename)
     emit OnDownloadFinished();
     return;
 }
+
 
 void Session::Login_()
 {

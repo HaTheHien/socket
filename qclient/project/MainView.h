@@ -27,12 +27,13 @@ public:
     void updateListView(QStringList& newFileList);
     QModelIndex getCurrentIndex();
     void InitFileListFromJson();
+    void UpdateFileList(QString filename);
 
 private:
     Ui::MainView *ui;
     ClientSocket* clientSocket = nullptr;
     QStringListModel fileListModel;
-    DownloadQueue* downloadQueue;
+    DownloadQueue* downloadQueue = nullptr;
 
     void OnDownLoadButtonClicked();
     void OnUpLoadButtonClicked();

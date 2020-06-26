@@ -51,6 +51,9 @@ public:
     void setIP(const QString& ip);
     void setPort(const qint16& port);
     void setPort(const QString& port);
+
+signals:
+    //void errorOccured(QString mess);
 };
 
 #endif // CLIENTSOCKET_H

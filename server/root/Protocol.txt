@@ -1,0 +1,80 @@
+- Login protocol:
+User send request: <4 byte: size of package> <4byte: LOGIN> <Username> <space> <Password>
+Server check:
+IF wrong info:
+	Server anwser: <4 byte: Size of package> <4 byte: NOT_OK> <Message>
+IF approve:
+	Server anwser: <4 byte: Size> <4 byte: OK> <Version>
+	IF Client's Version == Version:
+		Client send: <4 byte: Size> <UP_TO_DATE>
+	ELSE:
+		Client send: <4byte: Size> <OUT_OF_DATE>
+		Server anwser: <4 byte: Size> <JSON> <4 byte: Size of Json> <Version/Name>
+		Client answer: <4 byte: Size> <READY>
+		Server start to send Json file which contains file system infomation.
+
+- Register protocol:
+User send: <Packet size: 4 byte> <RES: 4 byte> <Username> <space> <Password>
+Server check:
+	IF approve:
+		Server anwser: <4 byte: Size> <4 byte: OK>
+	ELSE:
+		Server anwser: <4 byte: Size> <4 byte: NOT_OK> <Message>
+Done!
+
+- Refresh protocon:
++ Client send: <4 byte: Size> <4 byte: REFRESH>
+Server anwser: <4 byte: Size> <4 byte: OK> <Version> ... like above.
+
++ Server send: <4 byte: Size> <4 byte: REFRESH> <4 byte: Size of Json> <Version/Name>
+Client anwser: <4 byte: Size> <4 byte: READY> ... like above.
+
+- Upload protocol:
+User sent request: <Packet size: 4byte> <UPLOAD> <File size> <space> <file name>
+Server send back <Packet size: 4byte> <OK>
+Client start to upload.
+
+IF duplicate:
+	server ask to over-write: DUPPLICATE
+Client anwser: 
+	IF YES:
+		Server send back OK. Client start to upload.
+	IF NO:
+		Server send back ABORT.
+	ELSE:
+		Server send back OK. Client start to upload.
+
+IF size > 200MB:
+	Server send back OVERSIZE and abort operation.
+
+IF size > server's available:
+	Server send back OUT_OF_SPACE.
+
+IF client send: <Packet size: 4 byte> <END_OF_FILE: 4 byte>
+	This is the last upload packet.
+Server anwser: <Packet size: 4 byte> <UPLOAD_DONE>
+
+
+- Download Protocol:
+Client send: <Packet size: 4 byte> <DOWNLOAD: 4 byte> <File name>
+Server anwser: <Packet size: 4 byte> <OK: 4 byte> 
+Client send: <Packet size: READY>
+Server start to send file: <Packet size: 4 byte> <FILE_: 4 byte> <Data>
+Client anwser: <Packet size: 4 byte> <ACK: 4 byte>
+
+IF server send: <Packet size: 4 byte> <END_OF_FILE: 4 byte> <Data>
+	Client anwser: <Packet size: 4 byte> <DOWNLOAD_DONE: 4 byte>
+Done!
+
+- Update protocol:
+Server send: <Packet size:4 byte> <UPDATE: 4 byte> <Filesize> <space> <owner/username> <space> <filename>
+
+- Exit protocol:
+Client send: <Packet size: 4 byte> <EXIT: 4 byte>
+Both close connection.
+Done!
+
+******************************************************************************
+IF Client see: <Packet size: 4 byte> <ECHO: 4 byte> <Message>
+	This isn't data, print message out.
+*************************************************************************************

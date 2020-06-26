@@ -29,7 +29,8 @@ public:
     void Login(ClientSocket* clientSocket, QString username, QString password);
     void Register(ClientSocket* socket, QString username, QString password);
     void Upload(ClientSocket* socket);
-    void Download(ClientSocket* socket, QString filename);
+
+    void Download(ClientSocket* socket, QString fileToDownload, QString savedPath);
 
     void Login_();
     void echo(QString mess);
