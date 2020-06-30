@@ -35,6 +35,7 @@ vector<string*> use;
 Container Mjson;
 mutex blockJSON;
 char buf[4096];
+char buf3[1000];
 mutex block;
 char buf2[4096];
 mutex blockUpload;
@@ -227,8 +228,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	while (true)
 	{
 		bool check = false;
-		int byteReceive = recv(clientSocket, buf, 4096, 0);
-		string b = buf;
+		int byteReceive = recv(clientSocket, buf3, 1000, 0);
+		string b = buf3;
 		block.lock();
 		//cout << buf << endl;
 		if (byteReceive == 0)
@@ -394,8 +395,8 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	while (Login == true)
 	{
 		bool check = false;
-		int byteReceive = recv(clientSocket, buf, 4096, 0);
-		string b = buf;
+		int byteReceive = recv(clientSocket, buf3, 1000, 0);
+		string b = buf3;
 		block.lock();
 		//cout << buf << endl;
 		if (byteReceive == 0)
@@ -639,10 +640,10 @@ bool DownLoad(int clientSocket,string path)
 	{
 		block.lock();
 		int t2;
-		if (size > 4092)
+		if (size > 4088)
 		{
-			size -= 4092;
-			fin.read(buf, 4092);
+			size -= 4088;
+			fin.read(buf, 4088);
 			send(clientSocket, ("4096" + string(FILE_) + buf).c_str(), 4097, 0);
 		}
 		else

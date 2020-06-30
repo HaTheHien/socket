@@ -1,4 +1,29 @@
 {
-    "documents": null,
-    "version": "120-181-12-55-41"
-}
+    "documents": {
+        "Mahouka.txt ": {
+            "link": "root/Mahouka.txt ",
+            "list": null,
+            "owner": "hoangDuong",
+            "size": 6813
+        },
+        "MauThan1968.txt ": {
+            "link": "root/MauThan1968.txt ",
+            "list": null,
+            "owner": "hoangDuong",
+            "size": 156994
+        },
+        "Murakami.txt": {
+            "link": "root/Murakami.txt",
+            "list": null,
+            "owner": "hoangDuong",
+            "size": 40143
+        },
+        "Protocol.txt ": {
+            "link": "root/Protocol.txt ",
+            "list": null,
+            "owner": "hoangDuong",
+            "size": 2794
+        }
+    },
+    "version": "120-181-21-41-58"
+}Giới thiệu WikipediaLời

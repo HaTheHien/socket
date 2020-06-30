@@ -1,18 +1,18 @@
 ﻿  Source.cpp
   The contents of <filesystem> are available only with C++17 or later.
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(60,20): warning C4018: '<': signed/unsigned mismatch
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(78,20): warning C4018: '<': signed/unsigned mismatch
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(158,22): warning C4018: '<': signed/unsigned mismatch
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(93,7): warning C4101: 'recvbuf': unreferenced local variable
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(92,6): warning C4101: 'iSendResult': unreferenced local variable
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(188,23): warning C4018: '<': signed/unsigned mismatch
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(201,23): warning C4018: '<': signed/unsigned mismatch
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(264,27): warning C4018: '<': signed/unsigned mismatch
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(280,22): warning C4018: '<': signed/unsigned mismatch
-D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(636,18): warning C4244: '=': conversion from 'std::streamoff' to 'long', possible loss of data
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(61,20): warning C4018: '<': signed/unsigned mismatch
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(79,20): warning C4018: '<': signed/unsigned mismatch
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(159,22): warning C4018: '<': signed/unsigned mismatch
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(94,7): warning C4101: 'recvbuf': unreferenced local variable
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(93,6): warning C4101: 'iSendResult': unreferenced local variable
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(189,23): warning C4018: '<': signed/unsigned mismatch
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(202,23): warning C4018: '<': signed/unsigned mismatch
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(265,27): warning C4018: '<': signed/unsigned mismatch
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(281,22): warning C4018: '<': signed/unsigned mismatch
+D:\Homeworks\Computer Network\File Server Project\TestServer\TestServer\Source.cpp(637,18): warning C4244: '=': conversion from 'std::streamoff' to 'long', possible loss of data
   Generating code
   1 of 1676 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+    6 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   TestServer.vcxproj -> D:\Homeworks\Computer Network\File Server Project\TestServer\Release\TestServer.exe

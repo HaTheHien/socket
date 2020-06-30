@@ -1,0 +1,166 @@
+
+Biểu quyết chọn lọc Bài viết chọn lọc Tội phạm nhân bản 2049  · Danh sách chọn lọc Nhà vô địch bóng đá Anh, Cầu thủ vô địch Giải bóng đá Ngoại hạng Anh, Giải thưởng và đề cử của Call Me by Your Name.
+Biểu quyết nội dung tốt Bài viết tốt Sơn Tùng M-TP, Buổi chiều, Linh dương Heuglin, Logarit, Quỹ đạo địa đồng bộ, Bạo loạn Tây Nguyên 2004, Xúc xích Glamorgan.
+Đóng (mở lại bằng cách xóa cookie dismissASN1 trong trình duyệt)
+Node.js
+Bách khoa toàn thư mở Wikipedia
+(đổi hướng từ Nodejs)
+Buớc tưới chuyển hướngBước tới tìm kiếm
+Node.js
+Node.js Logo
+Thiết kế bởi	Ryan Lienhart Dahl
+Phát triển bởi	Node.js Developers
+Phiên bản ổn định	
+10.15.3  5 tháng 3, 2019
+Bản xem thử	
+11.11.0  6 tháng 3, 2019
+Repository	
+github.comnodejsnode
+Sửa dữ liệu tại Wikidata
+Viết bằng	C++, JavaScript
+Hệ điều hành	Mac OS X, Linux, Solaris, FreeBSD, OpenBSD, Windows (older versions require Cygwin), webOS
+Thể loại	Event-driven networking
+Giấy phép	MIT License
+Website	nodejs.org
+Trạng thái	Active
+Node.js là một hệ thống phần mềm được thiết kế để viết các ứng dụng internet có khả năng mở rộng, đặc biệt là máy chủ web.[1] Chương trình được viết bằng JavaScript, sử dụng kỹ thuật điều khiển theo sự kiện, nhậpxuất không đồng bộ để tối tiểu tổng chi phí và tối đại khả năng mở rộng.[2] Node.js bao gồm có V8 JavaScript engine của Google, libUV, và vài thư viện khác.
+
+Node.js được tạo bởi Ryan Dahl từ năm 2009, và phát triển dưới sự bảo trợ của Joyent.[3][4]
+
+Mục tiêu ban đầu của Dahl là làm cho trang web có khả năng push như trong một số ứng dụng web như Gmail. Sau khi thử với vài ngôn ngữ Dahl chọn Javascript vì một API NhậpXuất không đầy đủ. Điều này cho phép anh có thể định nghĩa một quy ước NhậpXuất điểu khiển theo sự kiện, non-blocking.[5]
+
+Vài môi trường tương tự được viết trong các ngôn ngữ khác bao gồm Twisted cho Python, Perl Object Environment cho Perl, libevent cho C và EventMachine cho Ruby. Khác với hầu hết các chương trình Javascript, Nodejs không chạy trên một trình duyệt mà chạy trên Server. Node.js sử dụng nhiều chi tiết kỹ thuật của CommonJS.[6] Nó cung cấp một môi trường REPL cho kiểm thử tương tác.
+
+Node.js được InfoWorld bình chọn là Công nghệ của năm năm 2012.[7]
+
+
+Mục lục
+1	Ví dụ
+2	Cộng đồng
+3	Các Framework nổi tiếng
+4	Xem thêm
+5	Tham khảo
+6	Đọc thêm
+7	Liên kết ngoài
+Ví dụ
+Đây là phiên bản hello world HTTP Server trên Node.js
+
+var http = require('http');
+
+http.createServer(function (request, response) {
+    response.writeHead(200, {'Content-Type' 'textplain'});
+    response.end('Hello Worldn');
+}).listen(8000);
+
+console.log('Server running at httplocalhost8000');
+Đoạn mã sau là một máy chủ TCP lắng nghe trên cổng 7000 và echo chuỗi 'hello' ra mỗi kết nối
+
+var net = require('net');
+
+net.createServer(function (stream) {
+    stream.write('hellorn');
+
+    stream.on('end', function () {
+        stream.end('goodbyern');
+    });
+
+    stream.pipe(stream);
+}).listen(7000);
+Cộng đồng
+Cộng đồng phát triển Node.js chủ yếu tập trung ở hai nhóm google nodejs và nodejs-dev, một kênh IRC là #node.js trên mạng freenode. Có một hội thảo về Node.js là NodeConf được tổ chức thường niên.[8]
+
+Hiện nay Node.js được sử dụng bởi nhiều công ty trong đó có Linkedin,[9][10] Microsoft,[11] Yahoo![12] và Walmart.[13]
+
+Các Framework nổi tiếng
+Express.js được sử dụng phổ biến để phát triển ứng dụng trên nền Nodejs.
+Electron.js được sử dụng để phát triển ứng dụng được sử dụng trên môi trường desktop.
+Xem thêm
+	Chủ đề Free software
+NPM - bộ quản lý đóng gói nổi bật của Node.js. Từ phiên bản Node.js 0.6.3, npm được cài tự động với Node.js.
+YARN - Bộ quản lý đóng gói mã nguồn mở với hiệu năng cao.
+JSAN, viết tắt của JavaScript Archive Network - một bộ quản lý gói khác ít dùng hơn.
+Opa, một hướng tiếp cận khác cho lập trình ứng dụng web, có nhiều đặc trưng của Node.js
+Tham khảo
+^ Wait, What's Node.js Good for Again, By Klint Finley, ngày 25 tháng 1 năm 2011, ReadWriteHack
+^ Cade Metz (1 tháng 3 năm 2011). “The Node Ahead JavaScript leaps from browser into future”. The Register.
+^ Why Everyone Is Talking About Node, By Jolie O'Dell, ngày 10 tháng 3 năm 2011, Mashable
+^ Alex Handy (ngày 24 tháng 6 năm 2011). “Node.js pushes JavaScript to the server-side”. SDTimes. Truy cập ngày 4 tháng 9 năm 2011.
+^ Hughes-Croucher, Tom; Wilson, Mike (2012). Up and Running with Node.js. Up and Running (ấn bản 1). Sebastopol O'Reilly. tr. vii. ISBN 978-1-4493-9858-3. I was concerned about the ability to program advanced push features into the website like I had seen in Gmail
+See the book's Foreword at OReilly.com
+^ Implementationsnode.js - CommonJS Spec Wiki
+^ “Node.js Selected by InfoWorld for 2012 Technology of the Year Award”. MarketWatch. Ngày 11 tháng 1 năm 2012. Truy cập ngày 26 tháng 1 năm 2012.
+^ NodeConf Schedule Announced, By Klint Finley, ngày 7 tháng 4 năm 2011, ReadWriteHack
+^ “You’ll never believe how LinkedIn built its new iPad app”. VentureBeat. Ngày 2 tháng 5 năm 2012. Truy cập ngày 10 tháng 5 năm 2012.
+^ [1], LinkedIn's developer blog discusses their Node.js stack optimizations
+^ “Here's why you should be happy that Microsoft is embracing Node.js”. The Guardian. Ngày 9 tháng 11 năm 2011. Truy cập ngày 10 tháng 5 năm 2012.
+^ [2], Yahoo! Developer Network announces Cocktails project using Node.js
+^ “Why Walmart is using Node.js”. VentureBeat. Ngày 24 tháng 1 năm 2012. Truy cập ngày 10 tháng 5 năm 2012.
+Đọc thêm
+Hughes-Croucher, Tom; Wilson, Mike (tháng 4 năm 2012), Up and Running with Node.js , O'Reilly Media, tr. 204, ISBN 978-1-4493-9858-3
+Liên kết ngoài
+Trang web chính thức
+npm
+Ryan Dahl Node.js  JSConf.eu on Blip
+How to install NodeJS
+Thể loại Thư viện JavaScriptPhần mềm tự do viết bằng JavaScript
+Trình đơn chuyển hướng
+Chưa đăng nhậpThảo luận cho địa chỉ IP nàyĐóng gópMở tài khoảnĐăng nhậpViết nháp
+Bài viếtThảo luận
+ĐọcSửa đổiSửa mã nguồnXem lịch sửKhác
+Tìm kiếm
+Tìm kiếm Wikipedia
+Trang Chính
+Bài viết chọn lọc
+Tin tức
+Bài viết ngẫu nhiên
+Thay đổi gần đây
+Phản hồi lỗi
+Quyên góp
+Tương tác
+Hướng dẫn
+Giới thiệu Wikipedia
+Cộng đồng
+Thảo luận chung
+Giúp sử dụng
+Liên lạc
+Gõ tiếng Việt
+Trợ giúp
+ Tự động [F9]
+ Telex ()
+ VNI ()
+ VIQR ()
+ VIQR
+ Tắt [F12]
+ Bỏ dấu kiểu cũ [F7]
+ Đúng chính tả [F8]
+Công cụ
+Các liên kết đến đây
+Thay đổi liên quan
+Trang đặc biệt
+Liên kết thường trực
+Thông tin trang
+Khoản mục Wikidata
+Trích dẫn trang này
+Tại dự án khác
+Wikimedia Commons
+Inxuất ra
+Tạo một quyển sách
+Tải về dưới dạng PDF
+Bản để in ra
+
+Ngôn ngữ khác
+العربية
+Bahasa Indonesia
+Bahasa Melayu
+English
+Español
+हिन्दी
+Русский
+اردو
+中文
+36 nữa
+Sửa liên kết
+Trang này được sửa đổi lần cuối vào ngày 10 tháng 5 năm 2020 lúc 0253.
+Văn bản được phát hành theo Giấy phép Creative Commons Ghi công–Chia sẻ tương tự; có thể áp dụng điều khoản bổ sung. Với việc sử dụng trang web này, bạn chấp nhận Điều khoản Sử dụng và Quy định quyền riêng tư.
+Wikipedia® là thương hiệu đã đăng ký của Wikimedia Foundation, Inc., một tổ chức phi lợi nhuận.
+Quy định quyền riêng tưGiới thiệu WikipediaLời phủ nhậnNhà phát triểnStatisticsTuyên bố về cookiePhiên bản di độngWikimedia FoundationPowered by MediaWiki
