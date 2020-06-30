@@ -33,6 +33,7 @@ public:
 //  Send data to server
 //  Return number of bytes were sent
     int Send(const QString& data);
+    int Send(const char* data, int size);
 
     /*
      * Receive message from server

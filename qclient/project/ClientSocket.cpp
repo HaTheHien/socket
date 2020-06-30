@@ -95,13 +95,18 @@ ClientSocket::ClientSocket()
 
 int ClientSocket::Send(const QString &data)
 {
-    QByteArray tmp = data.toLocal8Bit();
+    QByteArray tmp = data.toUtf8();
     return this->TCPSocket->write(tmp.data());
+}
+
+int ClientSocket::Send(const char *data, int size)
+{
+    return this->TCPSocket->write(data, size);
 }
 
 void ClientSocket::Receive()
 {
-    if(this->TCPSocket->waitForReadyRead()) //Wait 30s
+    if(this->TCPSocket->waitForReadyRead(60*1000)) //Wait 60s
     {
         this->buffer = this->TCPSocket->readAll();
     }

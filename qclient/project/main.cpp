@@ -44,6 +44,12 @@ int main(int argc, char *argv[])
 
 //        qDebug() << file.read(4096).data();
 
+//        ifstream fin("C:\\Users\\tarza\\OneDrive\\Pictures\\Saved Pictures\\470136.jpg", ios::binary);
+//        char binanyData[4088];
+//        fin.read(binanyData, 4088);
+//        QString s = binanyData;
+//        QByteArray b = s.toUtf8();
+
         return a.exec();
     } catch (std::exception e) {
         QMessageBox errMess;
