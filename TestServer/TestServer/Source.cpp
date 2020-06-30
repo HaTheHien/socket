@@ -228,6 +228,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	{
 		bool check = false;
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
+		string b = buf;
 		block.lock();
 		//cout << buf << endl;
 		if (byteReceive == 0)
@@ -237,7 +238,6 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		}
 		if (byteReceive > 0)
 		{
-			string b = buf;
 			string sizebuf = b.substr(0, 4);
 			string cat = b.substr(4, 4);
 			if (cat == LOGIN)
@@ -395,6 +395,7 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 	{
 		bool check = false;
 		int byteReceive = recv(clientSocket, buf, 4096, 0);
+		string b = buf;
 		block.lock();
 		//cout << buf << endl;
 		if (byteReceive == 0)
@@ -406,7 +407,6 @@ void handle_connection(int*&p) // lam viec sau khi ket noi
 		{
 			//echo.lock();
 
-			string b = buf;
 			string sizebuf = b.substr(0, 4);
 			string cat = b.substr(4, 4);
 			if (cat == UPLOAD)
