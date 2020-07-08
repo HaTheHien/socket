@@ -1,5 +1,11 @@
 {
     "documents": {
+        "HxDSetup.zip": {
+            "link": "root/HxDSetup.zip",
+            "list": null,
+            "owner": "1234",
+            "size": 3271994
+        },
         "Mahouka.txt ": {
             "link": "root/Mahouka.txt ",
             "list": null,
@@ -18,12 +24,24 @@
             "owner": "hoangDuong",
             "size": 40143
         },
+        "NodeJS.txt ": {
+            "link": "root/NodeJS.txt ",
+            "list": null,
+            "owner": "hoangDuong",
+            "size": 8525
+        },
         "Protocol.txt ": {
             "link": "root/Protocol.txt ",
             "list": null,
             "owner": "hoangDuong",
             "size": 2794
+        },
+        "VuTrongPhung.txt ": {
+            "link": "root/VuTrongPhung.txt ",
+            "list": null,
+            "owner": "hoangDuong",
+            "size": 16787
         }
     },
-    "version": "120-181-21-41-58"
-}Giới thiệu WikipediaLời
+    "version": "120-182-7-43-27"
+}
